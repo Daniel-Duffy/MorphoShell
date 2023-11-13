@@ -19,11 +19,7 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 -->
 
 
-<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="40px">
-
-hm
-
-<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="40px">
+<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="100px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="100px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="100px">
 
 
 
