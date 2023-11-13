@@ -17,12 +17,9 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 <img src="./banner_image.png" width="80%">
 </p>
 
-<!--
-<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height=50>
--->
 
+<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif?raw=true" width="100px">
 
-![](./gifs/giphy_eg.gif =50x50)
 
 
 
