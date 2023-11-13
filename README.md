@@ -16,7 +16,9 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 <p align="center">
 <img src="./banner_image.png" width="80%">
 </p>
-
+<p align="center">
+<img src="./defect_1.0_gif_colour.gif" width="25%"> <img src="./defect_1.0_gif_colour.gif" width="25%"> <img src="./defect_1.0_gif_colour.gif" width="25%">
+</p>
 <!-- 
 <video width="100%" controls>
   <source src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b" type="video/mp4">
@@ -32,12 +34,13 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 -->
 
 
-<video width="60" height="20" src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b"></video>
 
-
-<!-- To generate the video links, I just drag-and-dropped the video from my computer onto the editing window for the README that you get to just by clicking on README in the repo then clicking the little pencil icon to edit it. When you drag-drop like that, github stores the video outside your repo on its servers, and automatically puts the correct link into your markdown. Then I went to the usual dev editor to fine tune, controlling the width with html syntax etc. -->
+<!--
+The following worked to embed a video (following https://bobbyhadz.com/blog/embed-video-into-github-readme-markdown), but any resizing of the video seemed to do nothing --- when actually viewing the README page the video just fills the width no matter what, which is far too big. So I went with gifs instead.
+-->
+<!-- To generate the video link, I just drag-and-dropped the video from my computer onto the editing window for the README that you get to just by clicking on README in the repo then clicking the little pencil icon to edit it. When you drag-drop like that, github stores the video outside your repo on its servers, and automatically puts the correct link into your markdown. Then I went to the usual dev editor to fine tune, controlling the width with html syntax etc. -->
 <!-- 
-| <img src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b" width="100%"> | <img src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/511a9042-4691-41af-b4b7-1aa7bdb5ff42" width="100%"> | <img src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b" width="100%"> |
+<video width="60" height="20" src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b"></video>
 -->
 
 The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.
