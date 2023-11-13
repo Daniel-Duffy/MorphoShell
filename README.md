@@ -16,22 +16,18 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 <p align="center">
 <img src="./banner_image.png" width="80%">
 </p>
+
+
+<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height=50>
+
+
+<!-- 
 <p align="center">
 <img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height=50> <img src="./gifs/defect_-2.0_gif_colour_faster.gif" height=50> <img src="./gifs/M3GIF_disk_cone_ctrl_disp_nonequil.gif" height=50>
 </p>
-<!-- 
-<video width="100%" controls>
-  <source src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b" type="video/mp4">
-</video>
+
 -->
 
-<!--
-<div align="center">
-  <video src="./everting_annulus_vid.mp4" width="40%" />
-</div>
-
-<img src="./everting_annulus_vid.mp4" width="30%">
--->
 
 
 
