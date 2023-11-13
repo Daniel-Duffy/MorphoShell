@@ -14,9 +14,15 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 ### 
 <!--
 ![plot](./banner_image.png)
--->
+
 <p align="center">
 <font size="+8">MorphoShell: Simple Simulation Software for Shape-Shifting Shells</font>
+<img src="./banner_image.png" width="80%">
+</p>
+-->
+
+<p align="center">
+# MorphoShell: Simple Simulation Software for Shape-Shifting Shells
 <img src="./banner_image.png" width="80%">
 </p>
 
