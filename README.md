@@ -14,7 +14,7 @@ of Markdown on Github. -->
 The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.
 
 Hello
-:---------------------------------------------------------------------------------------------------------: |
+:---------------------------------------------------------------------------------------------------------:
 what did that do?
 
 
