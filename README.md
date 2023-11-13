@@ -11,28 +11,6 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 </p>
 -->
 
-<p align="center">
-<h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells</h2>
-<!--<p align="center">
-<img src="./banner_image.png" width="80%">
-</p>
--->
-
-
-<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="100px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="100px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="100px">
-
-
-
-
-<!-- 
-<p align="center">
-<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height=50> <img src="./gifs/defect_-2.0_gif_colour_faster.gif" height=50> <img src="./gifs/M3GIF_disk_cone_ctrl_disp_nonequil.gif" height=50>
-</p>
-
--->
-
-
-
 
 <!--
 The following worked to embed a video (following https://bobbyhadz.com/blog/embed-video-into-github-readme-markdown), but any resizing of the video seemed to do nothing --- when actually viewing the README page the video just fills the width no matter what, which is far too big. So I went with gifs instead.
@@ -42,7 +20,19 @@ The following worked to embed a video (following https://bobbyhadz.com/blog/embe
 <video width="60" height="20" src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b"></video>
 -->
 
-The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.
+<p align="center">
+<h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells</h2>
+</p>
+<p align="center">
+<img src="./banner_image.png" width="70%">
+</p>
+MorphoShell simulates elastic shells as they deform. It calculated forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are much more directly physical than those in many other codes, and yield pleasing videos: 
+<p align="center">
+<img src="./gifs/defect_-2.0_gif_colour_faster.gif" height="60px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height="60px"><img src="./gifs/M3GIF_disk_cone_ctrl_disp_nonequil.gif" height="60px">
+</p>
+The code is especially aimed at "shape-programmed" shells (left and middle videos), which start flat but then develop a preferred metric and/or curvature as they are "activated"; a growing leaf being a familiar example. However more traditional simulations also work well; in the right-hand video a cone is squashed and then unsquashed.
+
+The code first appeared alongside John Biggins's and my paper [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D), but this github version is more up-to-date. It's written in c++, but is designed to be pretty friendly to use and modify, even for inexperienced coders. John and I wrote it because we couldn't find any good, easy-to-use software packages for shape-programmed shells. The philosophy is to be as simple as possible while getting the job done; it's not supposed to a black box, nor extremely general, nor fast, nor
 
 ### Examples
 
