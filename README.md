@@ -22,7 +22,7 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 -->
 
 
-![test](./gifs/giphy_eg.gif)
+![](./gifs/giphy_eg.gif =50x50)
 
 
 
