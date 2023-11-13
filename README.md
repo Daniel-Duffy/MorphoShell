@@ -17,7 +17,7 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 <img src="./banner_image.png" width="80%">
 </p>
 <p align="center">
-<img src="./defect_1.0_gif_colour.gif" width="25%"> <img src="./defect_1.0_gif_colour.gif" width="25%"> <img src="./defect_1.0_gif_colour.gif" width="25%">
+<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height=50> <img src="./gifs/defect_-2.0_gif_colour_faster.gif" height=50> <img src="./gifs/M3GIF_disk_cone_ctrl_disp_nonequil.gif" height=50>
 </p>
 <!-- 
 <video width="100%" controls>
