@@ -18,3 +18,11 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.
 
 ### Examples
+
+
+https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b
+
+
+https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/511a9042-4691-41af-b4b7-1aa7bdb5ff42
+
+
