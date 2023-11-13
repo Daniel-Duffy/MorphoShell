@@ -15,7 +15,9 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 <!--
 ![plot](./banner_image.png)
 -->
+<p align="center">
 <img src="./banner_image.png" width="50%">
+</p>
 
 <!-- 
 <video width="100%" controls>
