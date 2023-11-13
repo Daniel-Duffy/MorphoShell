@@ -24,15 +24,18 @@ The following worked to embed a video (following https://bobbyhadz.com/blog/embe
 <h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells</h2>
 </p>
 <p align="center">
-<img src="./banner_image.png" width="70%">
+<img src="./banner_pic_after_gimp.png" width="70%">
 </p>
 MorphoShell simulates elastic shells as they deform. It calculated forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are much more directly physical than those in many other codes, and yield pleasing videos: 
-<p align="center">
-<img src="./gifs/defect_-2.0_gif_colour_faster.gif" height="60px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" height="60px"><img src="./gifs/M3GIF_disk_cone_ctrl_disp_nonequil.gif" height="60px">
-</p>
-The code is especially aimed at "shape-programmed" shells (left and middle videos), which start flat but then develop a preferred metric and/or curvature as they are "activated"; a growing leaf being a familiar example. However more traditional simulations also work well; in the right-hand video a cone is squashed and then unsquashed.
 
-The code first appeared alongside John Biggins's and my paper [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D), but this github version is more up-to-date. It's written in c++, but is designed to be pretty friendly to use and modify, even for inexperienced coders. John and I wrote it because we couldn't find any good, easy-to-use software packages for shape-programmed shells. The philosophy is to be as simple as possible while getting the job done; it's not supposed to a black box, nor extremely general, nor fast, nor
+<p align="center">
+<img src="./gifs/defect_-2.0_small_gif_colour_faster.gif" height="80px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_smallgif_no_lambda_and_faster.gif" height="80px"><img src="./gifs/M3SMALLGIF_disk_cone_ctrl_disp_nonequil.gif" height="80px">
+</p>
+The code is especially aimed at "shape-programmed" shells (left and middle), which start flat but then develop a preferred metric and/or curvature as they are "activated"; a growing leaf being a familiar example. However more traditional simulations also work well; in the right-hand video a cone is squashed and then unsquashed.
+
+The code first appeared alongside John Biggins's and my paper [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D), but this github version is more up-to-date. It's written in c++, but is designed to be pretty friendly to use and modify, even for inexperienced coders. John and I wrote it because we couldn't find any good, easy-to-use software packages for shape-programmed shells. The philosophy is to be as simple as possible while getting the job done; it's not supposed to be a black box, nor extremely general, nor impressively fast, nor particularly feature rich.
+
+The target audience is broad, but I particularly want the code to be suited to physicists who are intimidated by the idea of running simulations, or just don't want to spend loads of time coding.
 
 ### Examples
 
