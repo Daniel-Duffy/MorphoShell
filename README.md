@@ -23,9 +23,8 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 </video>
 -->
 
-<video width="30%" controls>
-  <source src="./everting_annulus_vid.mp4" type="video/mp4">
-</video>
+<img src="./everting_annulus_vid.mp4" width="30%">
+
 
 | <img src="./banner_image.png" width="100%"> | <img src="./banner_image.png" width="100%"> | <img src="./banner_image.png" width="100%"> |
 | :--------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
