@@ -20,12 +20,7 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 </video>
 -->
 
-
-
-https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/d73f8fbf-6bd5-4aa0-9898-cad3a671814c
-
-| https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/d73f8fbf-6bd5-4aa0-9898-cad3a671814c | https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/d73f8fbf-6bd5-4aa0-9898-cad3a671814c | https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/d73f8fbf-6bd5-4aa0-9898-cad3a671814c |
-| :--------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+| <img src="./banner_image.png" width="100%"> | <img src="./banner_image.png" width="100%"> | <img src="./banner_image.png" width="100%"> |
 
 <!-- To generate the video links, I just drag-and-dropped the video from my computer onto the editing window for the README that you get to just by clicking on README in the repo then clicking the little pencil icon to edit it. When you drag-drop like that, github stores the video outside your repo on its servers, and automatically puts the correct link into your markdown. Then I went to the usual dev editor to fine tune, controlling the width with html syntax etc. -->
 <!-- 
