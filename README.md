@@ -19,7 +19,11 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 -->
 
 
-<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="40px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="40px">
+<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="40px">
+
+The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.The first published version of MorphoShell accompanied the [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D) paper by Daniel Duffy and John S. Biggins.
+
+<img src="./gifs/evanticone_c1_lam_-2.04_0.33_gif_no_lambda_and_faster.gif" width="40px">
 
 
 
