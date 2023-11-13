@@ -24,14 +24,14 @@ The following worked to embed a video (following https://bobbyhadz.com/blog/embe
 <h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells</h2>
 </p>
 <p align="center">
-<img src="./banner_pic_after_gimp.png" width="70%">
+<img src="./images/banner_pic_after_gimp.png" width="70%">
 </p>
 MorphoShell simulates elastic shells as they deform. It calculated forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are much more directly physical than those in many other codes, and yield pleasing videos: 
 
 <br>
 <br>  
 <p align="center">
-<img src="./gifs/defect_-2.0_small_gif_colour_faster.gif" height="120px"><img src="./gifs/evanticone_c1_lam_-2.04_0.33_smallgif_no_lambda_and_faster.gif" height="120px"><img src="./gifs/M3SMALLGIF_disk_cone_ctrl_disp_nonequil.gif" height="120px">
+<img src="./images/defect_-2.0_small_gif_colour_faster.gif" height="120px"><img src="./images/evanticone_c1_lam_-2.04_0.33_smallgif_no_lambda_and_faster.gif" height="120px"><img src="./images/M3SMALLGIF_disk_cone_ctrl_disp_nonequil.gif" height="120px">
 </p>
 
 The code is especially aimed at "shape-programmed" shells (left and middle), which start flat but then develop a preferred metric and/or curvature as they are "activated"; a growing leaf being a familiar example. However more traditional simulations also work well; in the right-hand video [a cone is squashed](https://doi.org/10.1103/PhysRevLett.131.148202) and then unsquashed.  
