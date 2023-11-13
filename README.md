@@ -11,16 +11,6 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 </p>
 -->
 
-### 
-<!--
-![plot](./banner_image.png)
-
-<p align="center">
-<font size="+8">MorphoShell: Simple Simulation Software for Shape-Shifting Shells</font>
-<img src="./banner_image.png" width="80%">
-</p>
--->
-
 <p align="center">
 <h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells<h2>
 <p align="center">
@@ -32,6 +22,10 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
   <source src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b" type="video/mp4">
 </video>
 -->
+
+<video width="30%" controls>
+  <source src="./everting_annulus_vid.mp4" type="video/mp4">
+</video>
 
 | <img src="./banner_image.png" width="100%"> | <img src="./banner_image.png" width="100%"> | <img src="./banner_image.png" width="100%"> |
 | :--------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
