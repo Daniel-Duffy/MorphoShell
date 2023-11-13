@@ -16,7 +16,7 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 
 
 <video width="100%" controls>
-  <source src="evanticone_c1_lam_-2.04_0.33_movie.mp4" type="video/mp4">
+  <source src="https://github.com/Daniel-Duffy/MorphoShell/assets/70776477/268777c7-d92c-4971-817f-fbe9f3e3519b" type="video/mp4">
 </video>
 
 <!-- To generate the video links, I just drag-and-dropped the video from my computer onto the editing window for the README that you get to just by clicking on README in the repo then clicking the little pencil icon to edit it. When you drag-drop like that, github stores the video outside your repo on its servers, and automatically puts the correct link into your markdown. Then I went to the usual dev editor to fine tune, controlling the width with html syntax etc. -->
