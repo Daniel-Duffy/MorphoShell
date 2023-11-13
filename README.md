@@ -12,7 +12,7 @@ https://docs.github.com/en/get-started/writing-on-github/getting-started-with-wr
 -->
 
 <p align="center">
-<h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells<h2>
+<h2>MorphoShell: Simple Simulation Software for Shape-Shifting Shells</h2>
 <!--<p align="center">
 <img src="./banner_image.png" width="80%">
 </p>
