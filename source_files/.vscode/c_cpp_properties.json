@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++-11",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-std=c++17 ",
+                "-pedantic ",
+                "-g ",
+                "-O3",
+                "-Wall ",
+                "-Wconversion ",
+                "-Wextra",
+                "-Wformat  ",
+                "-Wshadow ",
+                "-Werror",
+                "-Wpointer-arith ",
+                "-Wcast-qual ",
+                "-Wwrite-strings"
+            ]
+        }
+    ],
+    "version": 4
+}
