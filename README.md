@@ -26,7 +26,7 @@ The following worked to embed a video (following https://bobbyhadz.com/blog/embe
 <p align="center">
 <img src="./images/banner_pic_after_gimp.png" width="70%">
 </p>
-MorphoShell simulates elastic shells as they deform. It calculated forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are much more directly physical than those in many other codes, and yield pleasing videos: 
+MorphoShell simulates elastic shells as they deform. It calculated forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are more directly physical than those in many other codes, which is good for both understanding your results and making nice videos of them: 
 
 <br>
 <br>  
@@ -36,13 +36,19 @@ MorphoShell simulates elastic shells as they deform. It calculated forces from a
 
 The code is especially aimed at "shape-programmed" shells (left and middle), which start flat but then develop a preferred metric and/or curvature as they are "activated"; a growing leaf being a familiar example. However more traditional simulations also work well; in the right-hand video [a cone is squashed](https://doi.org/10.1103/PhysRevLett.131.148202) and then unsquashed.  
 
-MorphoShell first appeared alongside John Biggins's and my paper [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D), but this github version is more up-to-date. It's written in c++, but is designed to be pretty friendly to use and modify, even for inexperienced coders. John and I wrote it because we couldn't find any good, easy-to-use software packages for shape-programmed shells. The philosophy is to be as simple as possible while getting the job done; it's not supposed to be a black box, nor extremely general, nor impressively fast, nor particularly feature rich.
+MorphoShell first appeared alongside John Biggins's and my paper [Defective Nematogenesis](https://doi.org/10.1039/D0SM01192D), but this github version is more up-to-date. It's written in c++, but is designed to be pretty friendly to use and modify, even for inexperienced coders. John and I wrote it because we couldn't find any good, easy-to-use software for shape-programmed shells. The philosophy is to be as simple as possible while getting the job done; the code's not supposed to be a black box, nor extremely general, nor impressively fast, nor particularly feature rich. It's served us extremely well in our research. The target audience is broad, but I particularly aiming at physicists who may be intimidated by the idea of running simulations themselves, or just don't want to spend loads of time coding.  
 
-The target audience is broad, but I particularly want the code to be suited to physicists who are intimidated by the idea of running simulations, or just don't want to spend loads of time coding.  
+My c++ source files are distributed here under the Cambridge Academic Software License (CASL), which very roughly means that if you're an academic the license is a lot like GPL, while if you're at a company or in any commercial setting, you'll need to come to another arrangement with me. For meshing, I use a Python implementation of the DistMesh algorithm; I provide the necessary scripts in the repo under a GPL license. For visualisation I recommend ParaView, which is excellent and free. 
 
-My c++ source files are distributed here under the Cambridge Academic Software License (CASL), which very roughly means that if you're an academic the license is a lot like GPL, while if you're at a company or in any commercial setting, you'll need to get in touch with me and I can arrange a specific license for you. You can find my contact details on https://www.danielduffy.org .
+To download the repo, click the green "<> Code" button near the top of this web page, then "Download ZIP". Please get in touch if you have any problems using the code: daniellouisduffy&nbsp;\[AT\]&nbsp;gmail&nbsp;\[DOT\]&nbsp;com.
 
-### Examples
+For detailed instructions on how the code works and how to use it, please see the MorphoShell Handbook, which is included in the repo, or this [instructional video](danielduffy.org):
+COMING SOON!
+<img src="./images/banner_pic_after_gimp.png" width="20%">
+
+<!--
+### Section 1
+-->
 
 
 
