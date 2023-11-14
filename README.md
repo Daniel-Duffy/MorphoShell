@@ -26,7 +26,7 @@ The following worked to embed a video (following https://bobbyhadz.com/blog/embe
 <p align="center">
 <img src="./images/banner_pic_after_gimp.png" width="70%">
 </p>
-MorphoShell simulates elastic shells as they deform. It calculated forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are more directly physical than those in many other codes, which is good for both understanding your results and making nice videos of them: 
+MorphoShell simulates elastic shells as they deform. It calculates forces from an elastic stretch+bend energy, and evolves a triangulated mesh accordingly, via damped Newtonian dynamics. Such dynamics are more directly physical than those in many other codes, which is good for both understanding your results and making nice videos of them: 
 
 <br>
 <br>  
