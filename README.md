@@ -44,7 +44,7 @@ To download the repo, click the green "<> Code" button near the top of this web 
 
 For detailed instructions on how the code works and how to use it, please see the MorphoShell Handbook, which is included in the repo, or this [instructional video](https://danielduffy.org):  
 
-VIDEO COMING SOON!  
+VIDEO COMING SOON!!  
 
 <img src="./images/banner_pic_after_gimp.png" width="20%">
 
