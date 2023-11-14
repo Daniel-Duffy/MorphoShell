@@ -42,7 +42,7 @@ My c++ source files are distributed here under the Cambridge Academic Software L
 
 To download the repo, click the green "<> Code" button near the top of this web page, then "Download ZIP". Please get in touch if you have any problems using the code: daniellouisduffy&nbsp;\[AT\]&nbsp;gmail&nbsp;\[DOT\]&nbsp;com.
 
-For detailed instructions on how the code works and how to use it, please see the MorphoShell Handbook, which is included in the repo, or this [instructional video](danielduffy.org):
+For detailed instructions on how the code works and how to use it, please see the MorphoShell Handbook, which is included in the repo, or this [instructional video](https://danielduffy.org):
 COMING SOON!
 <img src="./images/banner_pic_after_gimp.png" width="20%">
 
