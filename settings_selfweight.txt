@@ -1,33 +1,31 @@
 // Settings file for MorphoShell.
 
 
-outputs_per_char_long_time  = 400.0;
+outputs_per_char_long_time  = 2000.0;
 dialling_from_ansatz_rather_than_ref_state = true;
 patch_mat_dimless_conditioning_thresh = 10.0;
-ref_thickness_if_uniform = 0.01;
+ref_thickness_if_uniform = 0.008; // Cyl circumference is about 15
 def_poisson_ratio = 0.5; // Do not write 1/2 instead of 0.5.
 ref_shear_modulus_if_uniform = 1.0;
 ref_density = 1.0;
-dial_phase_time_prefactor = 0.25;
-time_between_equil_checks_prefactor = 0.01;
+dial_phase_time_prefactor = 0.005;
+time_between_equil_checks_prefactor = 1.0;//0.001;
 damping_prefactor_1 = 35.0;
 damping_prefactor_2 = 35.0;
 timestep_prefactor = 0.6;
 dial_factors_to_hold_at_spacing = 1.0;
 
-force_to_char_force_ratio_equil_threshold = 0.000001;
-speed_to_char_speed_ratio_equil_threshold = 0.00001;
+force_to_char_force_ratio_equil_threshold = 0.0; // 0.0001;
+speed_to_char_speed_ratio_equil_threshold = 0.0; // 0.0001;
 bend_stiffening_scale_factor = 100000000000000000.0;
 
 // Settings controlling squashing between glass slides.
-slide_stiffness_prefactor = 0.0;
+slide_stiffness_prefactor = 0.6;
 slide_friction_coefficent = 0.0;
-slide_speed_prefactor = 0.0;
+slide_speed_prefactor = -0.00005; // 0.001;
 using_initial_glass_slide_z_coords_from_settings_file = false;
 initial_upper_slide_z_coord = 12345.0;
 initial_lower_slide_z_coord = 12345.0;
 
 
 num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics = 0;
-
-

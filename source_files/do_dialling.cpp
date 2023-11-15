@@ -1,11 +1,22 @@
 /*
-/////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////
-
+Here we 'dial' various quantities, most notably abar and bbar.
 */
 
-//Turn Eigen bounds checking off for speed.
+/////////////////////////////////////////////////////
+/*
+Copyright (C) 2023, Daniel Duffy, daniellouisduffy@gmail.com. All rights reserved.
+Please cite Daniel Duffy and John S. Biggins if you 
+use any part of this code in work that you publish or distribute.
+
+This file is part of MorphoShell.
+
+MorphoShell is distributed under the terms of the Cambridge Academic
+Software License (CASL). You should have received a copy of the license
+along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com.
+*/
+/////////////////////////////////////////////////////
+
+// Turn Eigen bounds checking off for speed.
 #ifndef EIGEN_NO_DEBUG
 #define EIGEN_NO_DEBUG
 #endif
@@ -30,8 +41,8 @@ void do_dialling(
     double dial_factor,
     const Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> &abar_info,
     [[maybe_unused]] const Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> &bbar_info,
-    const Eigen::Matrix<double,Eigen::Dynamic,3> &initial_a_comps,
-    const Eigen::Matrix<double,Eigen::Dynamic,3> &initial_b_comps,
+    const Eigen::Matrix<double,Eigen::Dynamic,3> &a_comps_at_zero_dial_factor,
+    const Eigen::Matrix<double,Eigen::Dynamic,3> &b_comps_at_zero_dial_factor,
     [[maybe_unused]] const std::vector<Tri_Class> &triangles,
     [[maybe_unused]] const std::vector<Node_Class> &nodes,
     [[maybe_unused]] const Eigen::Matrix<double,Eigen::Dynamic,1> &dofs,
@@ -46,7 +57,7 @@ void do_dialling(
     // a and b values, then abar and bbar are dialled linearly
     // from the ansatz a and b to the final (dial_factor=1)
     // abar and bbar. This is a bit fiddly to implement, and
-    // happens in two parts: one here, and one at the end of this
+    // happens in two parts: one here, and later on in this
     // file.
     double dial_factor_copy = dial_factor;
     if( stuff.dialling_from_ansatz_rather_than_ref_state ){
@@ -56,46 +67,47 @@ void do_dialling(
     }
 
 
-    // Uncomment the desired dialling protocol below (remember
+    // Uncomment (only) the desired dialling protocol below (remember
     // the abar_info and bbar_info you provided in the input file
     // must hold the correct info for your desired protocol!). 
     // Feel free to add your own!
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
 
+    // 1)
     // This case assumes that abar_info and bbar_info 
     // are just equal to the final (dial_factor=1) 
     // abar_comps and bbar_comps, and we just dial 
     // abar and bbar linearly from their initial
     // values to those final values.
-    
-    abar_comps = (1.0-dial_factor) * initial_a_comps + dial_factor * abar_info;
-    bbar_comps = (1.0-dial_factor) * initial_b_comps + dial_factor * bbar_info;
+    abar_comps = (1.0-dial_factor) * a_comps_at_zero_dial_factor + dial_factor * abar_info;
+    bbar_comps = (1.0-dial_factor) * b_comps_at_zero_dial_factor + dial_factor * bbar_info;
     
     /////////////////////////////////////////////////
     /*
+    // 2)
     // As just above, except we dial bbar first completely
     // (reaching bbar_info at dial_factor = 0.5) and then 
     // dial abar completely.
     if( dial_factor < 0.5 ){
-        abar_comps = initial_a_comps;
-        bbar_comps = (1.0-2*dial_factor) * initial_b_comps + 2*dial_factor * bbar_info;
+        abar_comps = a_comps_at_zero_dial_factor;
+        bbar_comps = (1.0-2*dial_factor) * b_comps_at_zero_dial_factor + 2*dial_factor * bbar_info;
     }
     else{
-        abar_comps = (1.0-2*(dial_factor-0.5)) * initial_a_comps + 2*(dial_factor-0.5) * abar_info;
+        abar_comps = (1.0-2*(dial_factor-0.5)) * a_comps_at_zero_dial_factor + 2*(dial_factor-0.5) * abar_info;
         bbar_comps = bbar_info;
     }
     */
 
     /////////////////////////////////////////////////
-
+    /*
+    // 3)
     // This case assumes that bbar = 0 and that
     // abar is of LCE form, and we dial the LCE
     // lambda linearly in time from 0. So this 
     // is ideal for LCEs with in-plane director 
     // patterns. Each row of abar_info should hold 
     // director angle, final (target) lambda value, opto-thermal poisson ratio.
-    /*
     bbar_comps.fill(0.0);
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
@@ -111,14 +123,14 @@ void do_dialling(
     */
 
     /////////////////////////////////////////////////
-
+    /*
+    // 4)
     // This case assumes that bbar = 0 and that
     // abar is of LCE form, and we dial the LCE
     // lambda linearly in time from one inhomogeneous
     // lambda field to the next --- there are 11,
     // corresponding to dial_factor = 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 .
     // We must therefore have dial_factors_to_hold_at_spacing = 0.1 in settings.
-    /*
     bbar_comps.fill(0.0);
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
@@ -140,21 +152,14 @@ void do_dialling(
     }
     */
 
-    ////////////////////////////////////////////////
-
-    // You could do an example here of dialling and LCE 
-    // except with lambda modified by height of the tri
-    // centroid or angle of normal to the z axis.
-
-
     /////////////////////////////////////////////////
-
+    /*
+    // 5)
     // This case assumes that bbar = 0 and uses isotropic
     // swelling to encode constant negative
     // Gauss curvature K, with fabs(K) = 2 * dial_factor.
     // The r values in abar_info are just values of radial
     // coordinate in the 2D reference plane.
-    /*
     bbar_comps.fill(0.0);
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
@@ -171,6 +176,13 @@ void do_dialling(
     }
     */
 
+    ////////////////////////////////////////////////
+    // 6)
+    // Could include an example here of dialling and LCE 
+    // except with lambda modified by height of the tri
+    // centroid or angle of normal to the z axis.
+
+
 
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
@@ -181,28 +193,29 @@ void do_dialling(
     if( stuff.dialling_from_ansatz_rather_than_ref_state ){
 
         // Usual dialling from ansatz.
+        // A)
+        abar_comps = (1.0-dial_factor_copy) * a_comps_at_zero_dial_factor + dial_factor_copy * abar_comps;
+        bbar_comps = (1.0-dial_factor_copy) * b_comps_at_zero_dial_factor + dial_factor_copy * bbar_comps;
         
-        abar_comps = (1.0-dial_factor_copy) * initial_a_comps + dial_factor_copy * abar_comps;
-        bbar_comps = (1.0-dial_factor_copy) * initial_b_comps + dial_factor_copy * bbar_comps;
-        
-
+        // B)
         // Or instead do no dialling so the ansatz abar and bbar are just abar and bbar for all time.
         /*
-        abar_comps = initial_a_comps;
-        bbar_comps = initial_b_comps;
+        abar_comps = a_comps_at_zero_dial_factor;
+        bbar_comps = b_comps_at_zero_dial_factor;
         */
 
+        // C)
         // Or for Mingchao's flying saucer, abar and bbar just stay put except in a central reference disk where they
         // decrease, corresponding to a shrinkage by Omega and a programmed-curvature increase of 1/Omega (the
         // shrinking piece was a sphere.)
         /*
-        abar_comps = initial_a_comps;
-        bbar_comps = initial_b_comps;
+        abar_comps = a_comps_at_zero_dial_factor;
+        bbar_comps = b_comps_at_zero_dial_factor;
         // Nodes corresponding to shrinking region will be tagged in python.
         for(int t = 0; t < stuff.num_tris; ++t){
             if( triangles[t].tag ){
-                abar_comps.row(t) = (1.0-dial_factor_copy)*(1.0-dial_factor_copy) * initial_a_comps.row(t);
-                bbar_comps.row(t) = (1.0-dial_factor_copy) * initial_b_comps.row(t);
+                abar_comps.row(t) = (1.0-dial_factor_copy)*(1.0-dial_factor_copy) * a_comps_at_zero_dial_factor.row(t);
+                bbar_comps.row(t) = (1.0-dial_factor_copy) * b_comps_at_zero_dial_factor.row(t);
             }
         }
         */
@@ -217,9 +230,11 @@ void do_dialling(
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
 
+        // 1)
         // No changing of thickness during deformation.
         def_thicknesses(t) = triangles[t].ref_thickness; 
 
+        // 2)
         // LCE with "opto-thermal Poisson ratio" of 1/2.
         //def_thicknesses(t) = triangles[t].ref_thickness / sqrt(abar_comps(t,0)*abar_comps(t,2) - abar_comps(t,1)*abar_comps(t,1));
 
@@ -231,6 +246,7 @@ void do_dialling(
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
 
+        // 1)
         // No changing of shear modulus during deformation.
         def_shear_moduli(t) = triangles[t].ref_shear_modulus; 
 

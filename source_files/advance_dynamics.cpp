@@ -13,6 +13,20 @@ The forces are also checked for 'blowing up', which we treat as a
 kind of crash.
 */
 
+/////////////////////////////////////////////////////
+/*
+Copyright (C) 2023, Daniel Duffy, daniellouisduffy@gmail.com. All rights reserved.
+Please cite Daniel Duffy and John S. Biggins if you 
+use any part of this code in work that you publish or distribute.
+
+This file is part of MorphoShell.
+
+MorphoShell is distributed under the terms of the Cambridge Academic
+Software License (CASL). You should have received a copy of the license
+along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com.
+*/
+/////////////////////////////////////////////////////
+
 //Turn Eigen bounds checking off for speed.
 #ifndef EIGEN_NO_DEBUG
 #define EIGEN_NO_DEBUG
@@ -79,11 +93,11 @@ void advance_dynamics(
     }
 
 
-    // Advance slide.
+    // Advance upper 'glass slide'.
     stuff.upper_slide_z_coord += -stuff.timestep * stuff.slide_speed_prefactor * stuff.sample_char_length / stuff.bend_long_time;
 
     // Dial gravity, for a Calladine-esque setup. The minus sign in front of the speed prefactor is a hack so you can use
     // a single (negative) setting to have gravity increasing in strength while the top slide moves away without doing anything.
     // Using the slide_speed_prefactor as a gravitational dial speed prefactor is just a hack; adding a new setting would be better.
-    stuff.grav_field_strength += (-stuff.slide_speed_prefactor) * stuff.min_ref_shear_modulus * stuff.min_ref_thickness / (stuff.ref_density * stuff.total_ref_area);
+    //stuff.grav_field_strength += (-stuff.slide_speed_prefactor) * stuff.min_ref_shear_modulus * stuff.min_ref_thickness / (stuff.ref_density * stuff.total_ref_area);
 }

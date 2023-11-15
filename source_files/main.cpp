@@ -1,77 +1,18 @@
+// Main file for MorphoShell.
+
+/////////////////////////////////////////////////////
 /*
-Main file for MorphoShell.
+Copyright (C) 2023, Daniel Duffy, daniellouisduffy@gmail.com. All rights reserved.
+Please cite Daniel Duffy and John S. Biggins if you 
+use any part of this code in work that you publish or distribute.
 
+This file is part of MorphoShell.
 
-// To compile, type
-// g++-11 -fopenmp -std=c++17 -pedantic -g -O3 -o openmp_test main.cpp 
-// and hit enter.
-
-// To run the resulting executable, type
-// OMP_NUM_THREADS=6 ./openmp_test
-// and hit enter, to run with 6 threads.
-// You can choose to use 1 thread to turn off
-// parallelisation completely (or just compile 
-// without -fopenmp
-
-// You certainly don't want to set OMP_NUM_THREADS 
-// to too large a number: your computer only has so
-// many threads it can actually have running simultaneously.
-// This is related to the number of "cores". These days lots 
-// of cores are "hyperthreaded" which means they can run multiple
-// (usually 2) threads on each physical core. To investigate your
-// computers set up, type cat /proc/cpuinfo in a terminal and 
-// hit enter. Just look at the first chunk of the output, which 
-// starts with "processor: 0", but contains some info about
-// your whole system.
-// The "cpu cores" entry should mean the total number of physical 
-// cores, on your computer, whereas the "siblings" entry should 
-// give the total number of threads that can be run in parallel 
-// (which will quite probably = num physical cores * 2 due to 
-// hyperthreading).
-// I think usually by default openMP will use as many threads as 
-// possible, up to a maximum given by that "siblings" number. 
-// However, you may well want to instead choose to only 
-// run with OMP_NUM_THREADS set equal to the number of *physical*
-// cores you have. E.g. if using the Eigen matrix library's
-// parallel capabilities (which are openMP under the hood), their docs
-// say you must set OMP_NUM_THREADS no higher than the number of 
-// physical cores, to avoid major performance loss. I think more
-// generally too, hyperthreading does not work as well with openMP
-// as you'd hope: a hyperthreaded physical core with openMP trying 
-// to run two threads in parallel on that core does not get you the
-// 2x performance boost you'd hope!
-
-// In fact, it's not clear that setting OMP_NUM_THREADS to the
-// number of physical cores is actually enough, because in principle
-// openMP might choose to put 6 threads on 3 hyperthreaded physical 
-// cores rather than putting 6 threads on 6 physical cores and not
-// using hyperthreading. I think this is very unlikely in practice,
-// but to be safe, what I actually run on my computer with 6 physical
-// cores is:
-// OMP_PLACES=cores OMP_PROC_BIND=spread OMP_NUM_THREADS=5 ./morphoshell settings...
-// where I use "5" instead of "6" to leave one core free for me to do other things
-// easily while the code is running.
-
-// If found https://github.com/xianyi/OpenBLAS/issues/1653 very clarifying
-// on the above issue.
-
-// If you're on a machine (lots of Macs I think?) with a Turbo Boost setting,
-// it seems that MAYBE it damages Eigen's performance and should be switched off
-// (see https://stackoverflow.com/a/14796261 ). Very little about this online
-// though and it's clearly not a big effect so probably not worth worrying about
-// at this point.
-
-// Should check whether throttling is a problem! If use all cores at once sometimes
-// things slow down massively, and I think throttling is the cause. Note that if you 
-// compiled with openMP, then if you want to run on only 1 core, you MUST specify that
-// explicitly, e.g. 
-// OMP_PLACES=cores OMP_PROC_BIND=spread OMP_NUM_THREADS=1 ./morphoshell settings...
-// because if you leave it unspecified, the code will automatically run on as many cores
-// as possible, it seems.
-
-
-
+MorphoShell is distributed under the terms of the Cambridge Academic
+Software License (CASL). You should have received a copy of the license
+along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com.
 */
+/////////////////////////////////////////////////////
 
 // Turn Eigen bounds checking off for speed.
 #ifndef EIGEN_NO_DEBUG
@@ -120,6 +61,7 @@ Main file for MorphoShell.
 #include "write_output.hpp"
 #include "calc_curvatures.hpp"
 #include "calc_angle_deficits.hpp"
+#include "calc_stresses.hpp"
 #include "calc_strains.hpp"
 #include "impose_constraints.hpp"
 #include "advance_dynamics.hpp"
@@ -273,8 +215,8 @@ Eigen::Matrix<double,Eigen::Dynamic,3> b_comps(stuff.num_tris, 3);
 a_comps.fill(1); 
 a_comps.col(1).fill(0);
 b_comps.fill(0);
-Eigen::Matrix<double,Eigen::Dynamic,3> initial_a_comps = a_comps;
-Eigen::Matrix<double,Eigen::Dynamic,3> initial_b_comps = b_comps;
+Eigen::Matrix<double,Eigen::Dynamic,3> a_comps_at_zero_dial_factor = a_comps;
+Eigen::Matrix<double,Eigen::Dynamic,3> b_comps_at_zero_dial_factor = b_comps;
 
 
 
@@ -294,6 +236,7 @@ dofs.block(0,0,stuff.num_nodes,1) = node_positions.col(0);
 dofs.block(stuff.num_nodes,0,stuff.num_nodes,1) = node_positions.col(1);
 dofs.block(2*stuff.num_nodes,0,stuff.num_nodes,1) = node_positions.col(2);
 initialize_glass_slides(node_positions, stuff);
+node_positions.resize(0,0);// Deleting node_positions matrix; henceforth the node positions are just stored in the dofs vector we just created.
 Eigen::Matrix<double,Eigen::Dynamic,1> continuum_quantities(stuff.num_continuum_quantities, 1);
 Eigen::Matrix<double,Eigen::Dynamic,3> normals(stuff.num_tris, 3);
 Eigen::Matrix<double,Eigen::Dynamic,3> abar_comps(stuff.num_tris, 3);
@@ -352,7 +295,7 @@ while( true ){
         // An EquilCheck has not actually just occurred, but this has
         // a desired effect of ensuring that waiting_for_equil phase 
         // is at least timesteps_between_equil_checks long. 
-        // A bit cheeky I know.
+        // A hacky approach I know, and I feel bad about it.
         timesteps_since_previous_equil_check = 0.0;
         // Set damping factor to waiting-phase value.
         calc_damping_factor(stuff.damping_prefactor_2, stuff, log);
@@ -371,8 +314,9 @@ while( true ){
     
     
 
-
-    // If dialling_from_ansatz_rather_than_ref_state, adjust the stored initial_a and initial_b accordingly.
+    // If dialling_from_ansatz_rather_than_ref_state, adjust 
+    // the stored a_comps_at_zero_dial_factor and b_comps_at_zero_dial_factor 
+    // accordingly.
     if( stepcount == 0 && stuff.dialling_from_ansatz_rather_than_ref_state ){
         calc_a_comps_and_b_comps_and_normals(
             a_comps, 
@@ -380,8 +324,8 @@ while( true ){
             normals,
             continuum_quantities, 
             stuff);
-        initial_a_comps = a_comps;
-        initial_b_comps = b_comps;
+        a_comps_at_zero_dial_factor = a_comps;
+        b_comps_at_zero_dial_factor = b_comps;
     }
 
     // HERE WE DO THE DIALLING OF WHATEVER NEEDS DIALLING.
@@ -397,8 +341,8 @@ while( true ){
             dial_factor, 
             abar_info, 
             bbar_info,
-            initial_a_comps,
-            initial_b_comps,
+            a_comps_at_zero_dial_factor,
+            b_comps_at_zero_dial_factor,
             triangles,
             nodes,
             dofs, 
@@ -474,9 +418,9 @@ while( true ){
                 stuff);
         calc_curvatures(curvatures, continuum_quantities, b_comps, stuff);
         calc_angle_deficits(angle_deficits, dofs, nodes, triangles, stuff);
-        calc_energy_densities(energy_densities, a_comps, b_comps, abar_comps, bbar_comps, def_shear_moduli, def_thicknesses, stuff);
+        calc_energy_densities(energy_densities, a_comps, b_comps, abar_comps, bbar_comps, def_shear_moduli, def_thicknesses, stuff, log);
         calc_energies(energies, energy_densities, velocities, dof_masses, triangles, stuff);
-        //calc_stresses;
+        calc_stresses(stresses, continuum_quantities, abar_comps, bbar_comps, def_shear_moduli, def_thicknesses, triangles, stuff, log);
         calc_strains(strains, continuum_quantities, a_comps, abar_comps, stuff);
         try{write_output(
             dofs, 
@@ -510,9 +454,9 @@ while( true ){
                     stuff);
                 calc_curvatures(curvatures, continuum_quantities, b_comps, stuff);
                 calc_angle_deficits(angle_deficits, dofs, nodes, triangles, stuff);
-                calc_energy_densities(energy_densities, a_comps, b_comps, abar_comps, bbar_comps, def_shear_moduli, def_thicknesses, stuff);
+                calc_energy_densities(energy_densities, a_comps, b_comps, abar_comps, bbar_comps, def_shear_moduli, def_thicknesses, stuff, log);
                 calc_energies(energies, energy_densities, velocities, dof_masses, triangles, stuff);
-                //calc_stresses;
+                calc_stresses(stresses, continuum_quantities, abar_comps, bbar_comps, def_shear_moduli, def_thicknesses, triangles, stuff, log);
                 calc_strains(strains, continuum_quantities, a_comps, abar_comps, stuff);
                 write_output(
                     dofs, 
@@ -544,11 +488,11 @@ while( true ){
     }
 
 
-    // If equal has been reached and we are at the end of the simulation, terminate the while(true) loop.
-    if( dial_factor >= 1.0 && stuff.status == equil_reached ){ // Here can add qualifications in the case of slide squashing to just keep sim running I guess.
+    // If equilibrium has been reached and we are at the end of the 
+    // simulation, terminate the while(true) loop.
+    if( dial_factor >= 1.0 && stuff.status == equil_reached && stuff.slide_stiffness_prefactor > 0.0 ){ 
         break;
     }
-    //UNLESS DOING SQUASHING, IN WHICH CASE WE WANT TO JUST CARRY ON, AND ACTUALLY NOT DO ANY MORE EQUIL CHECKING, AND THIS SHOULDNT BE CALLED equil_reached.
 
 
     // If equil has been reached but dial_factor hasn't
@@ -565,26 +509,8 @@ while( true ){
 
 
 
-
-std::cout << "\n \n \n " << std::endl;
-
-std::cout << "Need to rename initial_a_comps because what they are is different when dialling from ansatz vs vanilla ansatzing." << std::endl;
-
-
-std::cout << "In generalized alpha we are going to ignore the fact that actually we do have time-dependent forces because of dialling" << std::endl;
-
-std::cout << "Eigen no malloc check for temporaries. Check also that loop is fully multithreaded." << std::endl;
-
-
-std::cout << "Think about how to handle ref_density to get gravity right." << std::endl;
-
-
-std::cout << "Put license and eigen_no_debug EVERYWHERE" << std::endl;
-
-
-std::cout << "In new idea scale all poly coeffs by tri size so dofs all have same dim." << std::endl;
-
 // Print some helpful final things.
+std::cout << "\n \n " << std::endl;
 log << "Simulation completed at time = " << time << ", stepcount = " << stepcount << std::endl;
 
 return 0;    

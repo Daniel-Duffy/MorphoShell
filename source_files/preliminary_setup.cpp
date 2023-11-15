@@ -9,6 +9,25 @@ already exists with the same name as the output directory being set up, the old
 one is renamed to avoid accidental deletion. Any previous existing version of
 this 'previous output' directory is deleted. */
 
+/////////////////////////////////////////////////////
+/*
+Copyright (C) 2023, Daniel Duffy, daniellouisduffy@gmail.com. All rights reserved.
+Please cite Daniel Duffy and John S. Biggins if you 
+use any part of this code in work that you publish or distribute.
+
+This file is part of MorphoShell.
+
+MorphoShell is distributed under the terms of the Cambridge Academic
+Software License (CASL). You should have received a copy of the license
+along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com.
+*/
+/////////////////////////////////////////////////////
+
+// Turn Eigen bounds checking off for speed.
+#ifndef EIGEN_NO_DEBUG
+#define EIGEN_NO_DEBUG
+#endif
+
 #include <iostream>
 #include <string>
 #include <filesystem> // Note this requires g++ version >=8
@@ -64,8 +83,8 @@ for(int i = 0; i < argc; ++i){
     first_log_entry +=  " ";
 }
 first_log_entry += "\n";
-first_log_entry += "not including any openMP part it might have had in front,\n";
-first_log_entry += "which is usually something like\n";
+first_log_entry += "not including any openMP part it might have had\n";
+first_log_entry += " in front, which is usually something like\n";
 first_log_entry += "OMP_PLACES=cores OMP_PROC_BIND=spread OMP_NUM_THREADS=5\n";
 first_log_entry += "\n\n";
 

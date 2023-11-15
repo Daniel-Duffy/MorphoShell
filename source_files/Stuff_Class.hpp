@@ -5,6 +5,25 @@
 This is the header file for the 'stuff' class that will hold many useful things. 
 It should always be passed to functions by reference, and usually const.*/
 
+/////////////////////////////////////////////////////
+/*
+Copyright (C) 2023, Daniel Duffy, daniellouisduffy@gmail.com. All rights reserved.
+Please cite Daniel Duffy and John S. Biggins if you 
+use any part of this code in work that you publish or distribute.
+
+This file is part of MorphoShell.
+
+MorphoShell is distributed under the terms of the Cambridge Academic
+Software License (CASL). You should have received a copy of the license
+along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com.
+*/
+/////////////////////////////////////////////////////
+
+// Turn Eigen bounds checking off for speed.
+#ifndef EIGEN_NO_DEBUG
+#define EIGEN_NO_DEBUG
+#endif
+
 #ifndef _STUFF_CLASS_TAG_
 #define _STUFF_CLASS_TAG_
 
@@ -23,7 +42,7 @@ public:
 	double patch_mat_dimless_conditioning_thresh;
 	double ref_thickness_if_uniform;
 	double def_poisson_ratio; // Deformed-state!
-	double ref_shear_modulus_if_uniform; // Deformed-state!
+	double ref_shear_modulus_if_uniform;
 	double ref_density;
 	double dial_phase_time_prefactor;
 	double time_between_equil_checks_prefactor;
@@ -80,8 +99,6 @@ public:
 	double lower_slide_z_coord;
 	double lower_slide_tot_vert_force;
 
-	double grav_field_strength;
-
 	int num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics; 
 	bool using_gradient_descent_dynamics;
 
@@ -93,5 +110,10 @@ public:
 
     // Total numbers of nodes, triangles, and edges, etc
     int num_nodes, num_boundary_nodes, num_tris, num_boundary_tris, num_edges, num_boundary_edges, num_dofs, num_continuum_quantities;
+
+	// Could easily put back gravity in by uncommenting the following line 
+	// and the relevant few lines in calc_non_deformation_forces.cpp, but 
+	// would want to think carefully about density (reference vs realised etc.). 
+	// double grav_field_strength; 
 };
 #endif

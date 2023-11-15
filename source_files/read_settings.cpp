@@ -7,6 +7,25 @@ Function to read in settings file and put these
 these settings in a class which is then returned.
 */
 
+/////////////////////////////////////////////////////
+/*
+Copyright (C) 2023, Daniel Duffy, daniellouisduffy@gmail.com. All rights reserved.
+Please cite Daniel Duffy and John S. Biggins if you 
+use any part of this code in work that you publish or distribute.
+
+This file is part of MorphoShell.
+
+MorphoShell is distributed under the terms of the Cambridge Academic
+Software License (CASL). You should have received a copy of the license
+along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com.
+*/
+/////////////////////////////////////////////////////
+
+// Turn Eigen bounds checking off for speed.
+#ifndef EIGEN_NO_DEBUG
+#define EIGEN_NO_DEBUG
+#endif
+
 #include <iostream> // Used for outputting messages to the terminal
 #include <fstream> // Used for file I/O.
 #include <stdexcept> // Used for exception (error) handling
@@ -212,10 +231,6 @@ stuff.initial_upper_slide_z_coord = std::stod(settings_vec.at(j));
 ++j;
 if(setting_names_vec.at(j) != "initial_lower_slide_z_coord"){throw std::runtime_error("Error: something went wrong when reading the initial_lower_slide_z_coord setting.");}
 stuff.initial_lower_slide_z_coord = std::stod(settings_vec.at(j));
-//
-++j;
-if(setting_names_vec.at(j) != "grav_field_strength"){throw std::runtime_error("Error: something went wrong when reading the grav_field_strength setting.");}
-stuff.grav_field_strength = std::stod(settings_vec.at(j));
 //
 ++j;
 if(setting_names_vec.at(j) != "num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics"){throw std::runtime_error("Error: something went wrong when reading the num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics setting.");}
