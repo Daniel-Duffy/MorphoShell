@@ -1,0 +1,66 @@
+// Settings file for MorphoShell.
+// Several of these settings are explained in detail in the 
+// MorphoShell handbook.
+
+// Controls frequency of generating output files.
+outputs_per_char_long_time  = 400.0;
+
+// To instead use the reference thickness 
+// from the input .vtk file (which may be
+// spatially varying), set this to a negative
+// decimal number.
+ref_thickness_if_uniform = 0.01;
+
+
+// This setting is very handy if, for example, you can only make an
+// approximate guess at a solution, and want to start from there and 
+// see where things go without explosive dynamics.
+dialling_from_ansatz_rather_than_ref_state = true;
+
+dial_factors_to_hold_at_spacing = 1.0;
+
+// The dial phase time is this prefactor times
+// the characteristic long time.
+dial_phase_time_prefactor = 0.25;
+
+
+time_between_equil_checks_prefactor = 0.01;
+damping_prefactor_1 = 35.0;
+damping_prefactor_2 = 35.0;
+timestep_prefactor = 0.6;
+
+// See handbook for why you might want to set this >0 in some cases.
+num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics = 0;
+
+// Threshold ratios of largest force and largest speed to their respective
+// characteristic sizes below which the shell is considered to be in equilbrium.
+force_to_char_force_ratio_equil_threshold = 0.000001;
+speed_to_char_speed_ratio_equil_threshold = 0.00001;
+
+def_poisson_ratio = 0.5; // Do not write 1/2 instead of 0.5.
+ref_shear_modulus_if_uniform = 1.0;
+ref_density = 1.0;
+
+// This dimensionless factor is called gamma in the handbook.
+bend_stiffening_scale_factor = 100000000000000000.0;
+
+// Factor to determine the threshold for the allowed condition number of the
+// matrices which are inverted in finding the second fundamental form
+// coefficients. Any tempMatForPatchSecDerivs with a condition number greater
+// than PatchMatrixDimensionlessConditioningThreshold divided by the patch's
+// approximate linear size^2 will not be used, and an alternative will be found
+// instead. Worse meshes may require higher values to accept any of the
+// possible patches. In general, choose as low a value as possible that
+// allows all triangles to find a patch successfully.*
+// patch_mat_dimless_conditioning_thresh = 10.0;
+
+// Settings controlling between glass slides.
+slide_stiffness_prefactor = 0.0;
+slide_friction_coefficent = 0.0;
+slide_speed_prefactor = 0.0;
+using_initial_glass_slide_z_coords_from_settings_file = false;
+initial_upper_slide_z_coord = 12345.0;
+initial_lower_slide_z_coord = 12345.0;
+
+
+
