@@ -223,8 +223,6 @@ void set_up_patch_fitting(
                 mat_is_invertible = false;
             }
             else{
-                /* Only one of these will end up being used - which depends on
-                which secFF estimate is being used.*/
                 temp_mat_for_patch_2nd_derivs = temp_patch_node_data_matrix.inverse().block<6,3>(0,3);
 
 

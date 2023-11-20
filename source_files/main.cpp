@@ -243,6 +243,7 @@ Eigen::Matrix<double,Eigen::Dynamic,3> abar_comps(stuff.num_tris, 3);
 Eigen::Matrix<double,Eigen::Dynamic,3> bbar_comps(stuff.num_tris, 3);
 Eigen::Matrix<double,Eigen::Dynamic,1> forces(stuff.num_dofs, 1);
 Eigen::Matrix<double,Eigen::Dynamic,1> velocities(stuff.num_dofs, 1);
+velocities.fill(0.0); // Precautionary.
 Eigen::Matrix<double,Eigen::Dynamic,2> curvatures(stuff.num_tris, 2); // Gauss and mean.
 Eigen::Matrix<double,Eigen::Dynamic,2> energy_densities(stuff.num_tris, 2); // Stretch and bend.
 Eigen::Matrix<double,Eigen::Dynamic,1> angle_deficits(stuff.num_nodes, 1);
@@ -252,7 +253,6 @@ std::vector<double> energies(3); // stretch_energy, bend_energy, kinetic_energy;
 Eigen::Matrix<double,Eigen::Dynamic,1> def_shear_moduli(stuff.num_tris, 1);
 Eigen::Matrix<double,Eigen::Dynamic,1> def_thicknesses(stuff.num_tris, 1);
 Eigen::Matrix<double,Eigen::Dynamic,1> del_energy_by_del_continuum_quantities(stuff.num_continuum_quantities, 1);
-velocities.fill(0.0); // Precautionary.
 double time = 0.0;
 int stepcount = 0;
 double dial_factor = dial_factor_to_start_from;

@@ -11,6 +11,8 @@ outputs_per_char_long_time  = 400.0;
 // decimal number.
 ref_thickness_if_uniform = 0.01;
 
+// A reasonable value to use as a first attempt is 0.6
+timestep_prefactor = 0.6;
 
 // This setting is very handy if, for example, you can only make an
 // approximate guess at a solution, and want to start from there and 
@@ -27,7 +29,6 @@ dial_phase_time_prefactor = 0.25;
 time_between_equil_checks_prefactor = 0.01;
 damping_prefactor_1 = 35.0;
 damping_prefactor_2 = 35.0;
-timestep_prefactor = 0.6;
 
 // See handbook for why you might want to set this >0 in some cases.
 num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics = 0;

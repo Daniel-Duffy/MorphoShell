@@ -73,7 +73,7 @@ void do_dialling(
     // Feel free to add your own!
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
-
+    
     // 1)
     // This case assumes that abar_info and bbar_info 
     // are just equal to the final (dial_factor=1) 
@@ -82,6 +82,7 @@ void do_dialling(
     // values to those final values.
     abar_comps = (1.0-dial_factor) * a_comps_at_zero_dial_factor + dial_factor * abar_info;
     bbar_comps = (1.0-dial_factor) * b_comps_at_zero_dial_factor + dial_factor * bbar_info;
+    
     
     /////////////////////////////////////////////////
     /*

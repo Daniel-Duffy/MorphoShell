@@ -38,7 +38,7 @@ CXX = g++-11
 VPATH = ./source_files
 
 # Name of executable file to make.
-EXEFILE = morphoshell_dev
+EXEFILE = morphoshell
 
 
 # Directory to put .o files in to avoid mess.
@@ -92,6 +92,7 @@ calc_curvatures.o \
 calc_angle_deficits.o \
 calc_energy_densities.o \
 calc_energies.o \
+calc_stresses.o \
 calc_strains.o \
 write_output.o \
 advance_dynamics.o \

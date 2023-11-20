@@ -149,28 +149,20 @@ stuff.outputs_per_char_long_time = std::stod(settings_vec.at(j));
 //stuff.stringy = settings_vec.at(j);
 //
 ++j;
-if(setting_names_vec.at(j) != "dialling_from_ansatz_rather_than_ref_state"){throw std::runtime_error("Error: something went wrong when reading the dialling_from_ansatz_rather_than_ref_state setting.");}
-stuff.dialling_from_ansatz_rather_than_ref_state = boolstring_to_bool(settings_vec.at(j));
-//
-++j;
-if(setting_names_vec.at(j) != "patch_mat_dimless_conditioning_thresh"){throw std::runtime_error("Error: something went wrong when reading the patch_mat_dimless_conditioning_thresh setting.");}
-stuff.patch_mat_dimless_conditioning_thresh = std::stod(settings_vec.at(j));
-//
-++j;
 if(setting_names_vec.at(j) != "ref_thickness_if_uniform"){throw std::runtime_error("Error: something went wrong when reading the ref_thickness_if_uniform setting.");}
 stuff.ref_thickness_if_uniform = std::stod(settings_vec.at(j));
 //
 ++j;
-if(setting_names_vec.at(j) != "def_poisson_ratio"){throw std::runtime_error("Error: something went wrong when reading the def_poisson_ratio setting.");}
-stuff.def_poisson_ratio = std::stod(settings_vec.at(j));
+if(setting_names_vec.at(j) != "timestep_prefactor"){throw std::runtime_error("Error: something went wrong when reading the timestep_prefactor setting.");}
+stuff.timestep_prefactor = std::stod(settings_vec.at(j));
 //
 ++j;
-if(setting_names_vec.at(j) != "ref_shear_modulus_if_uniform"){throw std::runtime_error("Error: something went wrong when reading the ref_shear_modulus_if_uniform setting.");}
-stuff.ref_shear_modulus_if_uniform = std::stod(settings_vec.at(j));
+if(setting_names_vec.at(j) != "dialling_from_ansatz_rather_than_ref_state"){throw std::runtime_error("Error: something went wrong when reading the dialling_from_ansatz_rather_than_ref_state setting.");}
+stuff.dialling_from_ansatz_rather_than_ref_state = boolstring_to_bool(settings_vec.at(j));
 //
 ++j;
-if(setting_names_vec.at(j) != "ref_density"){throw std::runtime_error("Error: something went wrong when reading the ref_density setting.");}
-stuff.ref_density = std::stod(settings_vec.at(j));
+if(setting_names_vec.at(j) != "dial_factors_to_hold_at_spacing"){throw std::runtime_error("Error: something went wrong when reading the dial_factors_to_hold_at_spacing setting.");}
+stuff.dial_factors_to_hold_at_spacing = std::stod(settings_vec.at(j));
 //
 ++j;
 if(setting_names_vec.at(j) != "dial_phase_time_prefactor"){throw std::runtime_error("Error: something went wrong when reading the dial_phase_time_prefactor setting.");}
@@ -189,12 +181,8 @@ if(setting_names_vec.at(j) != "damping_prefactor_2"){throw std::runtime_error("E
 stuff.damping_prefactor_2 = std::stod(settings_vec.at(j));
 //
 ++j;
-if(setting_names_vec.at(j) != "timestep_prefactor"){throw std::runtime_error("Error: something went wrong when reading the timestep_prefactor setting.");}
-stuff.timestep_prefactor = std::stod(settings_vec.at(j));
-//
-++j;
-if(setting_names_vec.at(j) != "dial_factors_to_hold_at_spacing"){throw std::runtime_error("Error: something went wrong when reading the dial_factors_to_hold_at_spacing setting.");}
-stuff.dial_factors_to_hold_at_spacing = std::stod(settings_vec.at(j));
+if(setting_names_vec.at(j) != "num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics"){throw std::runtime_error("Error: something went wrong when reading the num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics setting.");}
+stuff.num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics = std::stoi(settings_vec.at(j));
 //
 ++j;
 if(setting_names_vec.at(j) != "force_to_char_force_ratio_equil_threshold"){throw std::runtime_error("Error: something went wrong when reading the force_to_char_force_ratio_equil_threshold setting.");}
@@ -205,8 +193,24 @@ if(setting_names_vec.at(j) != "speed_to_char_speed_ratio_equil_threshold"){throw
 stuff.speed_to_char_speed_ratio_equil_threshold = std::stod(settings_vec.at(j));
 //
 ++j;
+if(setting_names_vec.at(j) != "def_poisson_ratio"){throw std::runtime_error("Error: something went wrong when reading the def_poisson_ratio setting.");}
+stuff.def_poisson_ratio = std::stod(settings_vec.at(j));
+//
+++j;
+if(setting_names_vec.at(j) != "ref_shear_modulus_if_uniform"){throw std::runtime_error("Error: something went wrong when reading the ref_shear_modulus_if_uniform setting.");}
+stuff.ref_shear_modulus_if_uniform = std::stod(settings_vec.at(j));
+//
+++j;
+if(setting_names_vec.at(j) != "ref_density"){throw std::runtime_error("Error: something went wrong when reading the ref_density setting.");}
+stuff.ref_density = std::stod(settings_vec.at(j));
+//
+++j;
 if(setting_names_vec.at(j) != "bend_stiffening_scale_factor"){throw std::runtime_error("Error: something went wrong when reading the bend_stiffening_scale_factor setting.");}
 stuff.bend_stiffening_scale_factor = std::stod(settings_vec.at(j));
+//
+++j;
+if(setting_names_vec.at(j) != "patch_mat_dimless_conditioning_thresh"){throw std::runtime_error("Error: something went wrong when reading the patch_mat_dimless_conditioning_thresh setting.");}
+stuff.patch_mat_dimless_conditioning_thresh = std::stod(settings_vec.at(j));
 //
 ++j;
 if(setting_names_vec.at(j) != "slide_stiffness_prefactor"){throw std::runtime_error("Error: something went wrong when reading the slide_stiffness_prefactor setting.");}
@@ -231,10 +235,6 @@ stuff.initial_upper_slide_z_coord = std::stod(settings_vec.at(j));
 ++j;
 if(setting_names_vec.at(j) != "initial_lower_slide_z_coord"){throw std::runtime_error("Error: something went wrong when reading the initial_lower_slide_z_coord setting.");}
 stuff.initial_lower_slide_z_coord = std::stod(settings_vec.at(j));
-//
-++j;
-if(setting_names_vec.at(j) != "num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics"){throw std::runtime_error("Error: something went wrong when reading the num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics setting.");}
-stuff.num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics = std::stoi(settings_vec.at(j));
 //
 
 

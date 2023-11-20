@@ -21,6 +21,8 @@ along with MorphoShell. If not, contact Daniel Duffy, daniellouisduffy@gmail.com
 #include <Eigen/Dense>
 
 #include "Stuff_Class.hpp"
+#include "Out_Stream_Class.hpp"
+
 
 void calc_energy_densities(
     Eigen::Matrix<double,Eigen::Dynamic,2> &energy_densities,
