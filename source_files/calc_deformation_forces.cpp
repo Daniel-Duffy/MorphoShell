@@ -175,6 +175,8 @@ void calc_deformation_forces(
         ///////////////////////////////////////////////////////////////////////////////////////
     }
 
+// COULD WE STILL GET MULTITHREADING IF WE JUST TAKE THE TRANSPOSE OF THE MAT BELOW AND USE 
+// A ROW VECTOR FOR del_energy_by_del_continuum_quantities ?
 
     // Now we combine the derivatives of the energy wrt the surface derivatives
     // with the derivatives of the surface derivatives wrt the dofs. By chain rule

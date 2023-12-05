@@ -38,7 +38,7 @@ CXX = g++-11
 VPATH = ./source_files
 
 # Name of executable file to make.
-EXEFILE = morphoshell
+EXEFILE = ../morphoshell
 
 
 # Directory to put .o files in to avoid mess.

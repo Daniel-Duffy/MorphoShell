@@ -182,7 +182,7 @@ try {calc_deriv_mats(
 
 
 // Calc masses assigned to dofs.
-Eigen::Matrix<double,Eigen::Dynamic,1> dof_masses(3*stuff.num_nodes, 1);
+Eigen::Matrix<double,Eigen::Dynamic,1> dof_masses(stuff.num_dofs, 1);
 try{calc_dof_masses(
     dof_masses,
     triangles, 
@@ -230,7 +230,7 @@ try{
 } catch(const std::runtime_error &error){log << error.what() << std::endl; return -1;}
 
 
-// Initialize dofs and many other things.
+// Initialize many things.
 // matrix.block(i,j,p,q) means block of size (p,q) starting at (i,j).
 dofs.block(0,0,stuff.num_nodes,1) = node_positions.col(0);
 dofs.block(stuff.num_nodes,0,stuff.num_nodes,1) = node_positions.col(1);
