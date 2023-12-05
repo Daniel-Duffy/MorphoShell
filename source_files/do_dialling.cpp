@@ -195,11 +195,11 @@ void do_dialling(
 
         // Usual dialling from ansatz.
         // A)
-        abar_comps = (1.0-dial_factor_copy) * a_comps_at_zero_dial_factor + dial_factor_copy * abar_comps;
-        bbar_comps = (1.0-dial_factor_copy) * b_comps_at_zero_dial_factor + dial_factor_copy * bbar_comps;
+        //abar_comps = (1.0-dial_factor_copy) * a_comps_at_zero_dial_factor + dial_factor_copy * abar_comps;
+        //bbar_comps = (1.0-dial_factor_copy) * b_comps_at_zero_dial_factor + dial_factor_copy * bbar_comps;
         
         // B)
-        // Or instead do no dialling so the ansatz abar and bbar are just abar and bbar for all time.
+        // Or instead do no dialling so the ansatz a and b are just abar and bbar for all time.
         /*
         abar_comps = a_comps_at_zero_dial_factor;
         bbar_comps = b_comps_at_zero_dial_factor;
@@ -220,6 +220,11 @@ void do_dialling(
             }
         }
         */
+        
+        // D)
+        // Keep abar as the ansatz a for all time, but dial bbar in the usual manner.
+        abar_comps = a_comps_at_zero_dial_factor;
+        bbar_comps = (1.0-dial_factor_copy) * b_comps_at_zero_dial_factor + dial_factor_copy * bbar_comps;
     }
 
 
