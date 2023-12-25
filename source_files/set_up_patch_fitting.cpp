@@ -131,9 +131,9 @@ void set_up_patch_fitting(
         bool success = false;
         
         // Now loop over some candidates for non_vertex_patch_nodes_ids[1]. So far I explore
-        // just the two next-closest nodes. But that search could be extended.
-        for(int p = 0; p < 3; ++p){
-            tri.non_vertex_patch_nodes_ids[1] = possible_patch_node_ids[idx_in_dist_list[p+1]];
+        // just the three next-closest nodes. But that search could be extended.
+        for(std::size_t p = 1; p < std::min(static_cast<std::size_t>(3), idx_in_dist_list.size()); ++p){
+            tri.non_vertex_patch_nodes_ids[1] = possible_patch_node_ids.at(idx_in_dist_list.at(p));
         
 
             /* Now loop over possibilities for non_vertex_patch_nodes_ids[2], finding
@@ -144,18 +144,6 @@ void set_up_patch_fitting(
 
                 tri.non_vertex_patch_nodes_ids[2] = possible_patch_node_ids[idx_in_dist_list[q]];
 
-
-                if( tri.id == 196 ){
-                    std::cout << "PATCH DEBUGGING" << std::endl;
-                    for( auto& thing: tri.vertex_ids ){
-                        std::cout << " " << thing << " ";
-                    }
-                    for( auto& thing: tri.non_vertex_patch_nodes_ids ){
-                        std::cout << " " << thing << " ";
-                    }
-                    std::cout << std::endl;
-
-                }
 
                 /* Calculate an approx `linear size' for the patch, taken to be the
                 RMS distances of the 6 patch nodes to the central triangle's
