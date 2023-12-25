@@ -290,8 +290,8 @@ void set_up_patch_fitting(
             throw std::runtime_error("At least one search for patch nodes was exhausted without "
             "success (triangle " + std::to_string(tri.id) + "); all possible patch matrices in the search had a  "
             "condition number above the acceptance threshold. Try increasing this threshold. If "
-            "that does not solve the issue, or causes other issues, the patch node search will "
-            "probably need to be extended. Please report this issue in that case. Aborting.");
+            "that does not solve the issue, or causes other issues, either the patch node search will "
+            "need to be extended, or you will need to use a nicer mesh. Aborting.");
         }
 
     }
