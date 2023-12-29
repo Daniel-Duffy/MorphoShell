@@ -132,7 +132,7 @@ void set_up_patch_fitting(
         
         // Now loop over some candidates for non_vertex_patch_nodes_ids[1]. So far I explore
         // just the three next-closest nodes. But that search could be extended.
-        for(std::size_t p = 1; p < std::min(static_cast<std::size_t>(3), idx_in_dist_list.size()); ++p){
+        for(std::size_t p = 1; p < std::min(static_cast<std::size_t>(4), idx_in_dist_list.size()); ++p){
             tri.non_vertex_patch_nodes_ids[1] = possible_patch_node_ids.at(idx_in_dist_list.at(p));
         
 

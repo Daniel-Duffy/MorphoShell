@@ -51,6 +51,26 @@ void advance_dynamics(
     const Eigen::Matrix<double,Eigen::Dynamic,1> &dof_masses,
     Stuff_Class &stuff,
     Out_Stream_Class &log){
+    
+    // Check forces are well behaved. If not, throw error, and
+    // display some stuff. Need to have this outside openMP #pragma 
+    // because of openMP's exception handling rules.
+    for(int d = 0; d < stuff.num_dofs; ++d){
+        if( !(fabs(forces(d)) < 50000.0 * stuff.char_force_scale) ){
+            log << " -----------------------------------------" << std::endl;
+            log << " ------------CRASH REPORT-----------------" << std::endl;
+            log << " -----------------------------------------" << std::endl;
+            //log << "Offending node and its incident triangles: " << std::endl;
+            log << "Offending dof is " << d << std::endl;
+            log << "Offending force is " << forces(d) << std::endl;
+            log << "Offending node is " << d%stuff.num_nodes << std::endl;
+            //nodes[n].display();
+            //for(int t = 0; t < nodes[n].incident_tri_ids.size(); ++t){
+            //    triangles[nodes[n].incident_tri_ids(t)].display();
+            //}
+            throw std::runtime_error("implausibly_high_force");
+        }
+    }
 
 
     #pragma omp parallel for simd
@@ -70,26 +90,6 @@ void advance_dynamics(
         
         // Advance position.
         dofs(d) += stuff.timestep * velocities(d);
-    }
-
-    // Check forces are well behaved. If not, throw error, and
-    // display some stuff. Need to have this outside openMP #pragma 
-    // because of openMP's exception handling rules.
-    for(int d = 0; d < stuff.num_dofs; ++d){
-        if( !(fabs(forces(d)) < 50000.0 * stuff.char_force_scale) ){
-            log << " -----------------------------------------" << std::endl;
-            log << " ------------CRASH REPORT-----------------" << std::endl;
-            log << " -----------------------------------------" << std::endl;
-            //log << "Offending node and its incident triangles: " << std::endl;
-            log << "Offending dof is " << d << std::endl;
-            log << "Offending force is " << forces(d) << std::endl;
-            log << "Offending node is " << d%stuff.num_nodes << std::endl;
-            //nodes[n].display();
-            //for(int t = 0; t < nodes[n].incident_tri_ids.size(); ++t){
-            //    triangles[nodes[n].incident_tri_ids(t)].display();
-            //}
-            throw std::runtime_error("implausibly_high_force");
-        }
     }
 
 
