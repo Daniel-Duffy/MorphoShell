@@ -12,6 +12,9 @@ import numpy as np
 from math import sin, cos, ceil, floor, copysign
 import matplotlib.pyplot as plt
 
+from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse.csgraph import reverse_cuthill_mckee
+
 ##############################################################################
 ##############################################################################
 
@@ -23,6 +26,118 @@ def smoothstep(x):
 ##############################################################################
 ##############################################################################
 
+
+
+
+"""
+People sometimes say that finite element stiffness matrices are 'usually banded', with no justification
+for this claim. I'm confident it boils down only to this: suppose your nodes are arranged spatially like
+ 0  1  2  3  4  5  6  7  8  9
+10 11 12 13 14 15 16 17 18 19
+20 21 22 23 24 25 26 27 28 29
+where the numbers are the node labels/IDs. You can see that if your domain is about n nodes wide 
+(left-to-right, n=10 in this example) and m nodes tall, then spatially neighbouring nodes will have labels
+differing by ar0und n or less. But the square stiffness matrix is (n*m) x (n*m). So e.g if m=n, the length of 
+a r0w of the stiffness matrix is n^2, and the non-zer0 elements on that r0w will only span about n either side 
+of the diagonal, so for large n you actually do have a rather banded matrix, even though you numbered your nodes
+only in a very naive way! Unstructured meshes cannot look like the above in general, but similar principles 
+presumably apply, at least to some extent, and people have found significant performance benefits arising from relabelling 
+nodes/edges/triangles; e.g. see 
+Burgess, Giles - Renumbering unstructured grids to improve the performance of codes on hierarchical memory machines
+Das et al - Design and implementation of a parallel unstructured Euler solver using software primitives.
+Therefore, I do the following: Apply SciPy's reverse Cuthill-Mckee implementation to the node-node adjacency matrix,
+to find a new labelling of nodes where nearby node labels correspond to spatially close nodes. Then I update the 
+triangulation accordingly, and then rename the triangles (just a reshuffling of the rows of triangulation) so they
+are ordered by the node label of their first vertex.
+"""
+def optimize_mesh_tri_and_node_labels(triangulation, nodes):
+    # First argument is a num_tris x 3 matrix where each element is a node id, i.e.
+    # an index into the second argument, which is a num_nodes x D matrix of positions, 
+    # where the dimension D is usually 2 or 3.
+    
+    assert(triangulation.max() == nodes.shape[0]-1), "Error: nodes and triangulation are inconsistent."
+
+    # First we calculate the node-node adjacency matrix. That is, the square
+    # matrix where the (i,j) element equals 1 if node i and node j are connected 
+    # by an edge, and equals 0 otherwise. This is an adjacency matrix for an 
+    # undirected graph. It is also symmetric.
+    
+    # The Nth element of this list is a list of the IDs of the nodes connected to N by an edge.
+    # In C++ something like this would be a pretty horrible data structure if 
+    # you ever wanted to iterate through it, because a std::list is "linked" --- 
+    # good for inserting elements, bad for fast lookup/iteration. However, in Python
+    # standard lists are not linked, and their elements are contiguous in memory,
+    # so they're more like std::vector --- O(n) insertion, but fast lookup/iteration.
+    neighbour_node_lists = [ [] for dummy in range(nodes.shape[0]) ] 
+
+    for t in range(0, triangulation.shape[0]):
+        for v in range(0, 3):
+            for u in range(0, 3):
+                neighbour_node_lists[triangulation[t,v]].append(triangulation[t,u])
+
+    for n in range(0, nodes.shape[0]):
+        # Remove node itself from its own neighbour list
+        neighbour_node_lists[n][:] = (el for el in neighbour_node_lists[n] if el != n) # stackoverflow.com/a/1157174
+        # Remove any duplicates in neighbour list.
+        new_list = []
+        [new_list.append(el) for el in neighbour_node_lists[n] if el not in new_list]
+        neighbour_node_lists[n] = new_list
+    
+    row_idxs = []
+    col_idxs = []
+    vals = []
+    for n in range(0, nodes.shape[0]):
+        for nn in neighbour_node_lists[n]:
+            row_idxs.append(n)
+            col_idxs.append(nn)
+            vals.append(1)
+    row_idxs = np.array(row_idxs)
+    col_idxs = np.array(col_idxs)
+    vals = np.array(vals)
+
+    node_adjacency_mat = coo_matrix((vals, (row_idxs, col_idxs)), shape=(nodes.shape[0], nodes.shape[0]), dtype=int)
+    node_adjacency_mat = node_adjacency_mat.tocsr()
+    
+    
+    # Then we apply the reverse Cuthill-McKee algorithm to compute a relabelling
+    # of nodes that reduces the bandwidth of that adjacency matrix, which should
+    # increase the tendency for spatially nearby nodes to have similar labels.
+    perm = reverse_cuthill_mckee(node_adjacency_mat, symmetric_mode=True) # The Nth element of perm equals the OLD label of the node with NEW label N.
+    # If you did
+    # temp = node_adjacency_mat.toarray()[perm, :]
+    # temp = temp[:,perm]
+    # then temp would be the new node adjacency matrix, which should have much
+    # smaller bandwidth than the original.
+    
+    
+    # Now we we shuffle the nodes array so that the new
+    # node labels correspond to indices into the nodes array.
+    nodes[:,:] = nodes[perm, :] # The [:,;] here is needed to modify the actual original nodes matrix outside this function.
+    
+    
+    # Got this from stackoverflow.com/a/25535723
+    new_node_labels = np.empty_like(perm) # The Nth element of this equals the NEW label of the node with OLD label N.
+    new_node_labels[perm] = np.arange(perm.size)
+    
+    
+    # Now we implement the new node labels in the triangulation.
+    new_triangulation = np.empty_like(triangulation)
+    for t in range(0, triangulation.shape[0]):
+        for v in range(0, 3):
+            new_triangulation[t,v] = new_node_labels[triangulation[t,v]]
+    triangulation[:,:] = new_triangulation # The [:,;] here is needed to modify the actual original nodes matrix outside this function.
+    
+    # Then we come up with a whole new tri numbering, such that it also has the
+    # the tendency to give spatially nearby triangles similar labels. Since 
+    # we've already given the node labels the analagous tendency, I take the 
+    # simple approach of just sorting the triangle labels (which are just
+    # indices into the triangulation array) by the node labels of their first 
+    # vertices. This is probably not the optimal triangle ordering, but I'm sure
+    # it's decent; it certainly seems to give essentially just as good for the 
+    # spatial distribution of tri labels as we're getting for the node labels.
+    triangulation[:,:] = triangulation[triangulation[:,0].argsort()] # The [:,;] here is needed to modify the actual original nodes matrix outside this function.
+    
+    
 
 def discretise_Director_Pattern_Into_Bins(dirAng, range_=(0,np.pi), **kwargs):
     """

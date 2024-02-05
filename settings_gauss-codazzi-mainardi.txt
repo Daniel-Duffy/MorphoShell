@@ -52,8 +52,8 @@ bend_stiffening_scale_factor = 100000000000000000.0;
 // approximate linear size^2 will not be used, and an alternative will be found
 // instead. Worse meshes may require higher values to accept any of the
 // possible patches. In general, choose as low a value as possible that
-// allows all triangles to find a patch successfully.*
-// patch_mat_dimless_conditioning_thresh = 10.0;
+// allows all triangles to find a patch successfully.
+patch_mat_dimless_conditioning_thresh = 10.0;
 
 // Settings controlling between glass slides.
 slide_stiffness_prefactor = 0.0;

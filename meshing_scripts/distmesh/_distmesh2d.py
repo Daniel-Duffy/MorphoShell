@@ -227,15 +227,14 @@ def distmesh2d(fd, fh, h0, bbox, pfix=None, fig='gcf', max_Iters = 1000): # Used
             # example (see top of this func) works - fd is not actually the 
             # distance function, but rather an implicit function for an ellipse.
             # But the approx works very well in that case. The true distance 
-            # function for an ellipse is much harder, and I think that's what
-            # dellipse implements.
+            # function for an ellipse is much harder.
             # Note that a more accurate way to in general find the distance 
             # function given an exact expression for the implicit function is 
             # described on p.31-32 of Persson's thesis, which is what is 
             # implemented by the dexpr distmesh function , which 
             # unfortunately is not implemented in PyDistMesh. Things like 
             # reinitialisation or fast marching methods are for when instead 
-            # you don't actually have a form for the implicit function.
+            # you don't even have a form for the implicit function.
 
         # 8. Termination criterion: All interior nodes move less than dptol (scaled)
         if (np.sqrt((deltat*Ftot[d<-geps]**2).sum(1))/h0).max() < dptol:
