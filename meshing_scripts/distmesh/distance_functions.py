@@ -18,6 +18,7 @@ import numpy as np
 
 __all__ = [
     # Distance functions:
+    'dsector',
     'dblock',
     'dcircle',
     'ddiff',
@@ -42,16 +43,34 @@ __all__ = [
     # Generic node manipulation:
     'protate',
     'pshift',
+    
+    # Other
+    'clamp',
     ]
 
 # These are used very often:
 min = np.minimum
 max = np.maximum
 
+def clamp(x, minval, maxval):
+    return np.minimum( np.maximum(x, minval), maxval)
+
 #-----------------------------------------------------------------------------
 # Signed distance functions
 #-----------------------------------------------------------------------------
 
+# Distance to a sector of a circle, or what you might call a pizza slice.
+# Added by Daniel Duffy, essentially copying the amazing Inigo Quilez https://iquilezles.org/articles/distfunctions2d/
+# The argument ang is the half-angle of the sector, while rad is the radius.
+def dsector(p, ang, rad):
+    q = np.stack((np.fabs(p[:,0]),p[:,1]), axis=-1)
+    c = np.array([np.sin(ang), np.cos(ang)])
+    l = np.sqrt((q**2).sum(-1)) - rad
+    temp = clamp(q@c, 0.0, rad)
+    temp2 = np.stack((temp*c[0], temp*c[1]), axis=-1)
+    m = np.sqrt((( q - temp2 )**2).sum(-1))
+    return np.maximum(l, m*np.sign(q[:,0]*c[1]-q[:,1]*c[0]))
+    
 def dblock(p,x1,x2,y1,y2,z1,z2):
     return -min(min(min(min(min(-z1+p[:,2],z2-p[:,2]),-y1+p[:,1]),y2-p[:,1]),-x1+p[:,0]),x2-p[:,0])
 
@@ -78,7 +97,7 @@ def dintersect(d1,d2):
     """Signed distance to set intersection of two regions described by signed
     distance functions d1 and d2.
 
-    Not exact the true signed distance function for the difference,
+    Not exact the true signed distance function for the intersection,
     for example around corners.
     """
     return max(d1,d2)

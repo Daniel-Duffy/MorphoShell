@@ -966,8 +966,8 @@ def get_map2DPointToSurface_Function(refNodes, defNodes, triangulation):
         # corresponding triangle. However the approach here should be fine for
         # our application. For now we exclude cases where the point fell outside
         # the square grid entirely, but that should be fixed in future, by imagining
-        # the grid did extend out to where the point is. The expanding ring -of-squares
-        # such is also done a bit wastefully- in particular when it reaches the edge
+        # the grid did extend out to where the point is. The expanding-ring-of-squares
+        # search is also done a bit wastefully- in particular when it reaches the edge
         # of the grid in one direction it could just stop rather than checking new
         # 'possibleSquare's in that direction for potential adding to nextSquaresToSearch.
         if squarePointIsInIfAny == False:
@@ -1025,8 +1025,725 @@ def get_map2DPointToSurface_Function(refNodes, defNodes, triangulation):
         assert(False), 'Error - the map2DPointToSurface function has gone wrong somehow and a node has slipped through and not been assigned a triangle.'
         return
 
-    # Now return the mapping function we'v generated.
+    # Now return the mapping function we've generated.
     return map2DPointToSurface
+
+
+
+#############################################################################
+#############################################################################
+
+
+def get_piecewise_linear_interpolation_function_for_tri_mesh(nodes, nodal_field_vals, triangulation):
+    # You feed this function a set of nodes and a triangulation that define a triangle
+    # mesh, as well as a set of values f_i representing the values of some quantity f
+    # at those nodes. This function returns a function that linearly interpolates
+    # f between the nodes of the triangle mesh. So it's a piecewise-linear approximation
+    # to the underlying field f(x,y). So using this function usually looks like this:
+    # linterp = get_piecewise_linear_interpolation_function_for_tri_mesh(nodes, nodal_temperatures, triangulation)
+    # for point in list_of_xy_points_that_are_not_nodes_of_the_mesh:
+     #   temperature[j] = linterp(point)
+    # The points at which you want to evaluate the linear interpolation should
+    # be either within the boundaries of the mesh or very close to the boundary.
+    # (This function is almost a copy-paste of get_map2DPointToSurface_Function.)
+    # I expect this function could be made a lot faster, possibly by removing some
+    # of the class structure.
+
+
+    num_nodes = nodes.shape[0]
+    num_tris = triangulation.shape[0]
+
+    # There may or may not be a slightly faster though less intuitive way
+    # to do this using barycentric coords - see various answers on
+    # Stackoverflow 2049582, where I also found the method used here.
+    # It works as follows: pick any vertex and draw the two sides outwards
+    # from it. For the point to be in the triangle, the the corresponding
+    # 'cross-products' must have opposite sign. Then look at the sign of
+    # the final side's cross product with a vector from a different vertex
+    # to the point to finish the determination.
+    # I think in rare cases where a point is almost exactly on an edge,
+    # this method can fail (see
+    # http://totologic.blogspot.com/2014/01/accurate-point-in-triangle-test.html)
+    # and you'll have to do more work in that case. For now I just check
+    # that there is no such problem i.e. all nodes are assigned to at least
+    # one triangle. Something you could do to detect the edge case is catch
+    # when an edge think a point in on its left (say) when going along the
+    # edge in either direction. Then you could pick some convention etc to
+    # handle it.
+    def isPointInTriangle(point, vert0, vert1, vert2):
+
+        vert0ToPoint_x = point[0] - vert0[0]
+        vert0ToPoint_y = point[1] - vert0[1]
+
+        check1 = (vert1[0]-vert0[0]) * vert0ToPoint_y - (vert1[1]-vert0[1]) * vert0ToPoint_x > 0
+
+        if ( (vert2[0]-vert0[0]) * vert0ToPoint_y - (vert2[1]-vert0[1]) * vert0ToPoint_x > 0 ) == check1:
+
+            return False
+
+        if ( (vert2[0]-vert1[0]) * (point[1] - vert1[1]) - (vert2[1]-vert1[1]) * (point[0] - vert1[0]) > 0 ) != check1:
+
+            return False
+
+        return True
+
+    class Tri:
+       def  __init__(self, vertex_labels):
+           self.vertex_labels = vertex_labels
+           self.vertex_positions = -4321*np.ones((3,2), dtype = 'float')
+           self.edges = 4321*np.ones((3,2), dtype = 'float')
+           self.vertex_field_vals = -9876*np.ones(3, dtype = 'float')
+           self.centroid = -12345*np.ones(2)
+           self.coeffs_of_linear_interpolation = -12345*np.ones(3)
+           return
+
+       def set_vertex_positions(self, vertex_positions):
+           self.vertex_positions = vertex_positions
+           return
+       
+       # Reorder the storing of vertex labels and positions so the increasing
+       # index from 0 to 2 corresponds to traversing the tri anticlockwise.
+       def reorder_vertices(self):
+           
+           vec_0_to_1 = self.vertex_positions[1,:] -self.vertex_positions[0,:]
+           vec_0_to_2 = self.vertex_positions[2,:] -self.vertex_positions[0,:]
+           
+           if vec_0_to_1[0]*vec_0_to_2[1] - vec_0_to_1[1]*vec_0_to_2[0] < 0:
+               
+               temp = self.vertex_labels[1]
+               self.vertex_labels[1] = self.vertex_labels[2]
+               self.vertex_labels[2] = temp
+               
+               temp2 = self.vertex_positions[1,:]
+               self.vertex_positions[1,:] = self.vertex_positions[2,:]
+               self.vertex_positions[2,:] = temp2
+           
+
+       def calc_edges(self):
+           # The first edge is the vector pointing from vertex 0 to vertex 1. 
+           # The second points from vertex 1 to vertex 2. The third points from
+           # vertex 2 to vertex 0. We calculate the edges after putting the 
+           # vertices in anticlockwise order, so the calculated edges will all
+           # also point anticlockwise. Each ROW of the edges matrix is an edge vector.
+           self.edges[0,:] = self.vertex_positions[1,:] - self.vertex_positions[0,:]
+           self.edges[1,:] = self.vertex_positions[2,:] - self.vertex_positions[1,:]
+           self.edges[2,:] = self.vertex_positions[0,:] - self.vertex_positions[2,:]
+       
+       def set_vertex_field_vals(self, vertex_field_vals):
+           self.vertex_field_vals = vertex_field_vals
+           return
+
+       def set_centroid(self, centroid):
+           self.centroid = centroid
+           return
+
+       def calc_coeffs_of_linear_interpolation(self):
+           # Within the triangle, the linear interpolated field will be
+           # f = a + b * (x-x_centroid) + c * (y-y_centroid). To find a, b, and c,
+           # we require that this linear polynomial interpolates the 3 vertex values of f.
+           # The three requirements are written as mat_to_invert @ [a, b, c] = vertex_field_vals.
+           mat_to_invert = np.ones((3,3), dtype = float)
+           mat_to_invert[:,1] = self.vertex_positions[:,0] - self.centroid[0]
+           mat_to_invert[:,2] = self.vertex_positions[:,1] - self.centroid[1]
+           self.coeffs_of_linear_interpolation = np.linalg.inv(mat_to_invert) @ self.vertex_field_vals
+           return
+
+       def calc_interpolated_value(self, point):
+           return self.coeffs_of_linear_interpolation[0] + self.coeffs_of_linear_interpolation[1] * (point[0]-self.centroid[0]) + self.coeffs_of_linear_interpolation[2] * (point[1]-self.centroid[1]) 
+
+
+    triangles = np.empty(num_tris, dtype=object)
+    for t in range(0, num_tris):
+        triangles[t] = Tri(triangulation[t,:])
+        triangles[t].set_vertex_positions(nodes[triangulation[t,:],:])
+        triangles[t].reorder_vertices()
+        triangles[t].calc_edges()
+        triangles[t].set_vertex_field_vals(nodal_field_vals[triangles[t].vertex_labels])
+        triangles[t].set_centroid( np.sum(triangles[t].vertex_positions, axis = 0) / 3)
+        triangles[t].calc_coeffs_of_linear_interpolation()
+
+
+    min_edge_length = np.linalg.norm(triangles[0].edges[0,:])
+    for t in range(0, num_tris):
+        length = np.linalg.norm(triangles[t].edges[0,:])
+        if min_edge_length > length:
+            min_edge_length = length
+        length = np.linalg.norm(triangles[t].edges[1,:])
+        if min_edge_length > length:
+            min_edge_length = length
+        length = np.linalg.norm(triangles[t].edges[2,:])
+        if min_edge_length > length:
+            min_edge_length = length
+
+
+
+    gridSquareSize = 1.1 * min_edge_length # This I'm sure is only roughly optimal at best, and could be tweaked.
+    # The 2*min_edge_length's are largely cautionary, and may be unnecessary overkill.
+    grid_xmin = np.amin(nodes[:,0]) - 2 * min_edge_length
+    grid_xmax_approx = np.amax(nodes[:,0]) + 2 * min_edge_length
+    gridPoint_xvals = np.linspace( grid_xmin, grid_xmin + ceil((grid_xmax_approx-grid_xmin)/gridSquareSize)*gridSquareSize, ceil((grid_xmax_approx-grid_xmin)/gridSquareSize)+1 )
+    grid_xmax = np.amax(gridPoint_xvals)
+
+    grid_ymin = np.amin(nodes[:,1]) - 2 * min_edge_length
+    grid_ymax_approx = np.amax(nodes[:,1]) + 2 * min_edge_length
+    gridPoint_yvals = np.linspace( grid_ymin, grid_ymin + ceil((grid_ymax_approx-grid_ymin)/gridSquareSize)*gridSquareSize, ceil((grid_ymax_approx-grid_ymin)/gridSquareSize)+1 )
+    grid_ymax = np.amax(gridPoint_yvals)
+
+
+    xx, yy = np.meshgrid(gridPoint_xvals, gridPoint_yvals, sparse=False, indexing='ij') # Matrices of x and y grid point positions respectively
+
+
+
+    class Square:
+       def  __init__(self, vertPoints):
+           self.Idxs = []
+           self.vertPoints = vertPoints
+           sides = np.zeros((2,4))
+           for s in range(0,4):
+               sides[:,s] = vertPoints[(s+1)%4,:] - vertPoints[s,:]
+           self.sides = sides
+           self.triIntersections = []
+           return
+
+       def set_Idxs(self, Idxs):
+           self.Idxs = Idxs
+           return
+
+       def append_TriIntersection(self, triLabel):
+           if (not (triLabel in self.triIntersections)): # if statement is precautionary, should never be necessary in this code.
+               self.triIntersections.append(triLabel)
+           return
+
+    squares = np.empty((xx.shape[0]-1,xx.shape[1]-1), dtype=object)
+    for i in range(0, squares.shape[0]):
+        for j in range(0, squares.shape[1]):
+            squares[i,j] = Square(np.array([[xx[i,j], yy[i,j]], [xx[i+1,j], yy[i+1,j]], [xx[i+1,j+1], yy[i+1,j+1]], [xx[i,j+1], yy[i,j+1]]]))
+            squares[i,j].set_Idxs([i,j])
+    numSquares = squares.size
+    print('Number of squares in grid for get_piecewise_linear_interpolation_function_for_tri_mesh is ' +str(numSquares))
+
+    def SquareIdxsOfPoint(point):
+        # Returns the i,j indexes in the squares array corresponding to the square
+        # that a given x,y point is in.
+        # assert(point[0] >= grid_xmin and point[1] >= grid_ymin and point[0] <= grid_xmax and point[1] <= grid_ymax), 'The point you provide to SquareIdxsOfPoint() must lie within the grid of squares!'
+        if( point[0] >= grid_xmin and point[0] <= grid_xmax  and point[1] >= grid_ymin and point[1] <= grid_ymax ): # if point lies within the grid of squares
+            return (floor((point[0]-grid_xmin) / gridSquareSize),  floor((point[1]-grid_ymin) / gridSquareSize))
+        else:
+            return False # point does not lie within the grid of squares
+
+
+    def convexPolyIntersectionCheck(points1, edges1, points2, edges2):
+        # Function that returns bool indicating whether two convex 2D polygons
+        # intersect/overlap, based on separating axis theorem. Each ROW of the
+        # points1,2 inputs should hold point coords, going round anticlockwise, and
+        # the nth COLUMN of edges1,2 should be a side vector from the nth point to
+        # the n+1th (so also anticlockwise).
+        # See Ericson 'Real-Time Collision Detection'.
+        # Some optimisation of this might be possible, see e.g. http://web.archive.org/web/20141127210836/http://content.gpwiki.org/index.php/Polygon_Collision
+
+        # I have not thought about edge cases here where the polygons
+        # exactly share a point or nearly do and floating point causes problems etc,
+        # as it really shouldn't matter for the current application.
+        pointSepVecs = np.empty((points1.shape[0], points2.shape[0], 2))
+        for p1 in range(0, points1.shape[0]):
+            for p2 in range(0, points2.shape[0]):
+                    pointSepVecs[p1,p2,:] = points2[p2,:] - points1[p1,:]
+
+
+        # Check if any of polygon 1's edges give a separating axis
+        for e in range(0, edges1.shape[1]):
+
+            abandonThisEdge = False
+
+            for p in range(0, points2.shape[0]):
+
+                # For an edge to give a separating axis, all the other polygon's
+                # points must lie to the right of the edge as you going along it
+                # according to our anticlockwise convention.
+                # If this edge does not give a separating axis, move on.
+                if int(copysign(1, pointSepVecs[e,p,0] * edges1[1,e] - pointSepVecs[e,p,1] * edges1[0,e])) == -1:
+
+                    abandonThisEdge = True
+                    break
+
+            if abandonThisEdge == True:
+                continue
+            # If a separating axis is found, the polygons do not intersect.
+            return False
+
+         # Check if any of polygon 2's edges give a separating axis
+        for e in range(0, edges2.shape[1]):
+
+            abandonThisEdge = False
+
+            for p in range(0, points1.shape[0]):
+
+                # If this edge does not give a separating axis, move on.
+                if int(copysign(1, pointSepVecs[p,e,0] * edges2[1,e] - pointSepVecs[p,e,1] * edges2[0,e])) == 1:
+
+                    abandonThisEdge = True
+                    break
+
+            if abandonThisEdge == True:
+                continue
+
+            return False
+
+        # If no separating axis found, the polygons intersect
+        return True
+
+    # Let the squares know which triangles intersect them.
+    for t in range(0, num_tris):
+        min_x_vert = triangles[t].vertex_positions[ np.argmin(triangles[t].vertex_positions[:,0]), :]
+        max_x_vert = triangles[t].vertex_positions[ np.argmax(triangles[t].vertex_positions[:,0]), :]
+        min_y_vert = triangles[t].vertex_positions[ np.argmin(triangles[t].vertex_positions[:,1]), :]
+        max_y_vert = triangles[t].vertex_positions[ np.argmax(triangles[t].vertex_positions[:,1]), :]
+
+        # We test all squares in the grid-aligned rectangle defined by the tri verts
+        idxsToCheck_x =  range(SquareIdxsOfPoint(min_x_vert)[0], SquareIdxsOfPoint(max_x_vert)[0]+1)
+        idxsToCheck_y =  range(SquareIdxsOfPoint(min_y_vert)[1], SquareIdxsOfPoint(max_y_vert)[1]+1)
+
+        for i in idxsToCheck_x:
+            for j in idxsToCheck_y:
+
+                if convexPolyIntersectionCheck(triangles[t].vertex_positions, triangles[t].edges.transpose(), squares[i,j].vertPoints, squares[i,j].sides) == True:
+                    squares[i,j].append_TriIntersection(t)
+
+
+
+    def interpolating_function(point):
+        squarePointIsInIfAny = SquareIdxsOfPoint(point)
+        # If point is in a square...
+        if squarePointIsInIfAny != False:
+
+            # If point's square intersects any triangles...
+            possibleTris = squares[squarePointIsInIfAny].triIntersections
+
+            for t in possibleTris:
+                # If point is in THIS triangle, record that and its plane->plane mapping will be used to map the point.
+                if isPointInTriangle(point,  triangles[t].vertex_positions[0,:], triangles[t].vertex_positions[1,:], triangles[t].vertex_positions[2,:]) == True:
+
+                    return triangles[t].calc_interpolated_value(point)
+
+        # Otherwise (i.e. the square had no triangle
+        # intersections, or it did but the point wasn't in any of those triangles),
+        # we instead just find the closest square to the point that does have
+        # intersections, and use the triangle it intersects whose centroid is
+        # closest to the point. You could be more careful and really find e.g. the
+        # closest point in the set of triangles to the given point, and use the
+        # corresponding triangle. However the approach here should be fine for
+        # our application. For now we exclude cases where the point fell outside
+        # the square grid entirely, but that should be fixed in future, by imagining
+        # the grid did extend out to where the point is. The expanding-ring-of-squares
+        # search is also done a bit wastefully- in particular when it reaches the edge
+        # of the grid in one direction it could just stop rather than checking new
+        # 'possibleSquare's in that direction for potential adding to nextSquaresToSearch.
+        if squarePointIsInIfAny == False:
+                assert(False), 'Error: For now we need all points you want to map to be within the square grid, so make the grid bigger if need be.'
+        else:
+            possibleTris = []
+            squaresToSearch = [squarePointIsInIfAny]
+            startSquare = squarePointIsInIfAny
+            ringIdxRad = 0 # Search based on a square 'ring' of squares, with the outer squares this many indices from the central start square
+
+            while True:
+
+                for sq in squaresToSearch:
+                    possibleTris.extend(squares[sq].triIntersections)
+
+                if len(possibleTris) != 0:
+                    break
+
+                nextSquaresToSearch = []
+                for sq in squaresToSearch:
+
+                    if sq[0] == startSquare[0] - ringIdxRad:
+                        nextSquaresToSearch.append((sq[0]-1, sq[1]))
+
+                    elif sq[0] == startSquare[0] + ringIdxRad:
+                        nextSquaresToSearch.append((sq[0]+1, sq[1]))
+
+                    elif sq[1] == startSquare[1] - ringIdxRad:
+                        nextSquaresToSearch.append((sq[0], sq[1]-1))
+
+                    elif sq[1] == startSquare[1] + ringIdxRad:
+                        nextSquaresToSearch.append((sq[0], sq[1]+1))
+
+                # Corners of ring add an extra square
+                nextSquaresToSearch.append((startSquare[0] + ringIdxRad + 1, startSquare[1] + ringIdxRad + 1))
+                nextSquaresToSearch.append((startSquare[0] - ringIdxRad - 1, startSquare[1] + ringIdxRad + 1))
+                nextSquaresToSearch.append((startSquare[0] - ringIdxRad - 1, startSquare[1] - ringIdxRad - 1))
+                nextSquaresToSearch.append((startSquare[0] + ringIdxRad + 1, startSquare[1] - ringIdxRad - 1))
+
+                # Eliminate any nextSquaresToSearch that don't exist as they're out of the grid.
+                realNextSquaresToSearch = [nsq for nsq in nextSquaresToSearch if (nsq[0] >= 0 and nsq[0] < squares.shape[0] and nsq[1] >= 0 and nsq[1] < squares.shape[1])]
+
+                squaresToSearch = realNextSquaresToSearch
+
+                ringIdxRad += 1
+
+            # Now we've found at least one possible tri, find the one with the closest
+            # centroid (probably not the best approach but simple and should work
+            # fine for now).
+            centroidDists = np.array([np.linalg.norm(triangles[t].centroid - point) for t in possibleTris])
+            triToUse = possibleTris[np.argmin(centroidDists)]
+
+            return triangles[triToUse].calc_interpolated_value(point)
+
+        assert(False), 'Error: get_piecewise_linear_interpolation_function_for_tri_mesh has gone wrong somehow and a node has slipped through and not been assigned a triangle.'
+        return
+
+    # Now return the mapping function we've generated.
+    return interpolating_function
+
+
+
+
+
+
+#############################################################################
+#############################################################################
+
+
+def get_triangle_finder_function(nodes, triangulation):
+    # You feed this function a set of 2D nodes and a triangulation that define a triangle
+    # mesh. This function returns a function that can be fed a 2D point [x,y] 
+    # and outputs the tri in the mesh that that point lies in, or a sensible tri
+    # close to the point if the point lies outside the mesh (though the point should
+    # be only slightly outside the mesh for this to work well).
+    # (This function is almost a copy-paste of get_piecewise_linear_interpolation_function_for_tri_mesh.)
+    # I expect this function could be made a lot faster, possibly by removing some
+    # of the class structure. So a standard usage might look like
+    # triangle_finder = create_triangle_finder_function(nodes, triangulation)
+    # for point in list_of_xy_points_that_are_not_nodes_of_the_mesh:
+    #   triangle_id_corresponding_to_this_point = triangle_finder(point)
+
+
+    num_nodes = nodes.shape[0]
+    num_tris = triangulation.shape[0]
+
+    # There may or may not be a slightly faster though less intuitive way
+    # to do this using barycentric coords - see various answers on
+    # Stackoverflow 2049582, where I also found the method used here.
+    # It works as follows: pick any vertex and draw the two sides outwards
+    # from it. For the point to be in the triangle, the the corresponding
+    # 'cross-products' must have opposite sign. Then look at the sign of
+    # the final side's cross product with a vector from a different vertex
+    # to the point to finish the determination.
+    # I think in rare cases where a point is almost exactly on an edge,
+    # this method can fail (see
+    # http://totologic.blogspot.com/2014/01/accurate-point-in-triangle-test.html)
+    # and you'll have to do more work in that case. For now I just check
+    # that there is no such problem i.e. all nodes are assigned to at least
+    # one triangle. Something you could do to detect the edge case is catch
+    # when an edge think a point in on its left (say) when going along the
+    # edge in either direction. Then you could pick some convention etc to
+    # handle it.
+    def isPointInTriangle(point, vert0, vert1, vert2):
+
+        vert0ToPoint_x = point[0] - vert0[0]
+        vert0ToPoint_y = point[1] - vert0[1]
+
+        check1 = (vert1[0]-vert0[0]) * vert0ToPoint_y - (vert1[1]-vert0[1]) * vert0ToPoint_x > 0
+
+        if ( (vert2[0]-vert0[0]) * vert0ToPoint_y - (vert2[1]-vert0[1]) * vert0ToPoint_x > 0 ) == check1:
+
+            return False
+
+        if ( (vert2[0]-vert1[0]) * (point[1] - vert1[1]) - (vert2[1]-vert1[1]) * (point[0] - vert1[0]) > 0 ) != check1:
+
+            return False
+
+        return True
+
+    class Tri:
+       def  __init__(self, vertex_labels):
+           self.vertex_labels = vertex_labels
+           self.vertex_positions = -4321*np.ones((3,2), dtype = 'float')
+           self.edges = 4321*np.ones((3,2), dtype = 'float')
+           self.centroid = -12345*np.ones(2)
+           return
+
+       def set_vertex_positions(self, vertex_positions):
+           self.vertex_positions = vertex_positions
+           return
+       
+       # Reorder the storing of vertex labels and positions so the increasing
+       # index from 0 to 2 corresponds to traversing the tri anticlockwise.
+       def reorder_vertices(self):
+           
+           vec_0_to_1 = self.vertex_positions[1,:] -self.vertex_positions[0,:]
+           vec_0_to_2 = self.vertex_positions[2,:] -self.vertex_positions[0,:]
+           
+           if vec_0_to_1[0]*vec_0_to_2[1] - vec_0_to_1[1]*vec_0_to_2[0] < 0:
+               
+               temp = self.vertex_labels[1]
+               self.vertex_labels[1] = self.vertex_labels[2]
+               self.vertex_labels[2] = temp
+               
+               temp2 = self.vertex_positions[1,:]
+               self.vertex_positions[1,:] = self.vertex_positions[2,:]
+               self.vertex_positions[2,:] = temp2
+           
+
+       def calc_edges(self):
+           # The first edge is the vector pointing from vertex 0 to vertex 1. 
+           # The second points from vertex 1 to vertex 2. The third points from
+           # vertex 2 to vertex 0. We calculate the edges after putting the 
+           # vertices in anticlockwise order, so the calculated edges will all
+           # also point anticlockwise. Each ROW of the edges matrix is an edge vector.
+           self.edges[0,:] = self.vertex_positions[1,:] - self.vertex_positions[0,:]
+           self.edges[1,:] = self.vertex_positions[2,:] - self.vertex_positions[1,:]
+           self.edges[2,:] = self.vertex_positions[0,:] - self.vertex_positions[2,:]
+
+
+       def set_centroid(self, centroid):
+           self.centroid = centroid
+           return
+
+
+
+    triangles = np.empty(num_tris, dtype=object)
+    for t in range(0, num_tris):
+        triangles[t] = Tri(triangulation[t,:])
+        triangles[t].set_vertex_positions(nodes[triangulation[t,:],:])
+        triangles[t].reorder_vertices()
+        triangles[t].calc_edges()
+        triangles[t].set_centroid( np.sum(triangles[t].vertex_positions, axis = 0) / 3)
+
+
+    min_edge_length = np.linalg.norm(triangles[0].edges[0,:])
+    for t in range(0, num_tris):
+        length = np.linalg.norm(triangles[t].edges[0,:])
+        if min_edge_length > length:
+            min_edge_length = length
+        length = np.linalg.norm(triangles[t].edges[1,:])
+        if min_edge_length > length:
+            min_edge_length = length
+        length = np.linalg.norm(triangles[t].edges[2,:])
+        if min_edge_length > length:
+            min_edge_length = length
+
+
+
+    gridSquareSize = 1.1 * min_edge_length # This I'm sure is only roughly optimal at best, and could be tweaked.
+    # The 2*min_edge_length's are largely cautionary, and may be unnecessary overkill.
+    grid_xmin = np.amin(nodes[:,0]) - 2 * min_edge_length
+    grid_xmax_approx = np.amax(nodes[:,0]) + 2 * min_edge_length
+    gridPoint_xvals = np.linspace( grid_xmin, grid_xmin + ceil((grid_xmax_approx-grid_xmin)/gridSquareSize)*gridSquareSize, ceil((grid_xmax_approx-grid_xmin)/gridSquareSize)+1 )
+    grid_xmax = np.amax(gridPoint_xvals)
+
+    grid_ymin = np.amin(nodes[:,1]) - 2 * min_edge_length
+    grid_ymax_approx = np.amax(nodes[:,1]) + 2 * min_edge_length
+    gridPoint_yvals = np.linspace( grid_ymin, grid_ymin + ceil((grid_ymax_approx-grid_ymin)/gridSquareSize)*gridSquareSize, ceil((grid_ymax_approx-grid_ymin)/gridSquareSize)+1 )
+    grid_ymax = np.amax(gridPoint_yvals)
+
+
+    xx, yy = np.meshgrid(gridPoint_xvals, gridPoint_yvals, sparse=False, indexing='ij') # Matrices of x and y grid point positions respectively
+
+
+
+    class Square:
+       def  __init__(self, vertPoints):
+           self.Idxs = []
+           self.vertPoints = vertPoints
+           sides = np.zeros((2,4))
+           for s in range(0,4):
+               sides[:,s] = vertPoints[(s+1)%4,:] - vertPoints[s,:]
+           self.sides = sides
+           self.triIntersections = []
+           return
+
+       def set_Idxs(self, Idxs):
+           self.Idxs = Idxs
+           return
+
+       def append_TriIntersection(self, triLabel):
+           if (not (triLabel in self.triIntersections)): # if statement is precautionary, should never be necessary in this code.
+               self.triIntersections.append(triLabel)
+           return
+
+    squares = np.empty((xx.shape[0]-1,xx.shape[1]-1), dtype=object)
+    for i in range(0, squares.shape[0]):
+        for j in range(0, squares.shape[1]):
+            squares[i,j] = Square(np.array([[xx[i,j], yy[i,j]], [xx[i+1,j], yy[i+1,j]], [xx[i+1,j+1], yy[i+1,j+1]], [xx[i,j+1], yy[i,j+1]]]))
+            squares[i,j].set_Idxs([i,j])
+    numSquares = squares.size
+    print('Number of squares in grid for get_piecewise_linear_interpolation_function_for_tri_mesh is ' +str(numSquares))
+
+    def SquareIdxsOfPoint(point):
+        # Returns the i,j indexes in the squares array corresponding to the square
+        # that a given x,y point is in.
+        # assert(point[0] >= grid_xmin and point[1] >= grid_ymin and point[0] <= grid_xmax and point[1] <= grid_ymax), 'The point you provide to SquareIdxsOfPoint() must lie within the grid of squares!'
+        if( point[0] >= grid_xmin and point[0] <= grid_xmax  and point[1] >= grid_ymin and point[1] <= grid_ymax ): # if point lies within the grid of squares
+            return (floor((point[0]-grid_xmin) / gridSquareSize),  floor((point[1]-grid_ymin) / gridSquareSize))
+        else:
+            return False # point does not lie within the grid of squares
+
+
+    def convexPolyIntersectionCheck(points1, edges1, points2, edges2):
+        # Function that returns bool indicating whether two convex 2D polygons
+        # intersect/overlap, based on separating axis theorem. Each ROW of the
+        # points1,2 inputs should hold point coords, going round anticlockwise, and
+        # the nth COLUMN of edges1,2 should be a side vector from the nth point to
+        # the n+1th (so also anticlockwise).
+        # See Ericson 'Real-Time Collision Detection'.
+        # Some optimisation of this might be possible, see e.g. http://web.archive.org/web/20141127210836/http://content.gpwiki.org/index.php/Polygon_Collision
+
+        # I have not thought about edge cases here where the polygons
+        # exactly share a point or nearly do and floating point causes problems etc,
+        # as it really shouldn't matter for the current application.
+        pointSepVecs = np.empty((points1.shape[0], points2.shape[0], 2))
+        for p1 in range(0, points1.shape[0]):
+            for p2 in range(0, points2.shape[0]):
+                    pointSepVecs[p1,p2,:] = points2[p2,:] - points1[p1,:]
+
+
+        # Check if any of polygon 1's edges give a separating axis
+        for e in range(0, edges1.shape[1]):
+
+            abandonThisEdge = False
+
+            for p in range(0, points2.shape[0]):
+
+                # For an edge to give a separating axis, all the other polygon's
+                # points must lie to the right of the edge as you going along it
+                # according to our anticlockwise convention.
+                # If this edge does not give a separating axis, move on.
+                if int(copysign(1, pointSepVecs[e,p,0] * edges1[1,e] - pointSepVecs[e,p,1] * edges1[0,e])) == -1:
+
+                    abandonThisEdge = True
+                    break
+
+            if abandonThisEdge == True:
+                continue
+            # If a separating axis is found, the polygons do not intersect.
+            return False
+
+         # Check if any of polygon 2's edges give a separating axis
+        for e in range(0, edges2.shape[1]):
+
+            abandonThisEdge = False
+
+            for p in range(0, points1.shape[0]):
+
+                # If this edge does not give a separating axis, move on.
+                if int(copysign(1, pointSepVecs[p,e,0] * edges2[1,e] - pointSepVecs[p,e,1] * edges2[0,e])) == 1:
+
+                    abandonThisEdge = True
+                    break
+
+            if abandonThisEdge == True:
+                continue
+
+            return False
+
+        # If no separating axis found, the polygons intersect
+        return True
+
+    # Let the squares know which triangles intersect them.
+    for t in range(0, num_tris):
+        min_x_vert = triangles[t].vertex_positions[ np.argmin(triangles[t].vertex_positions[:,0]), :]
+        max_x_vert = triangles[t].vertex_positions[ np.argmax(triangles[t].vertex_positions[:,0]), :]
+        min_y_vert = triangles[t].vertex_positions[ np.argmin(triangles[t].vertex_positions[:,1]), :]
+        max_y_vert = triangles[t].vertex_positions[ np.argmax(triangles[t].vertex_positions[:,1]), :]
+
+        # We test all squares in the grid-aligned rectangle defined by the tri verts
+        idxsToCheck_x =  range(SquareIdxsOfPoint(min_x_vert)[0], SquareIdxsOfPoint(max_x_vert)[0]+1)
+        idxsToCheck_y =  range(SquareIdxsOfPoint(min_y_vert)[1], SquareIdxsOfPoint(max_y_vert)[1]+1)
+
+        for i in idxsToCheck_x:
+            for j in idxsToCheck_y:
+
+                if convexPolyIntersectionCheck(triangles[t].vertex_positions, triangles[t].edges.transpose(), squares[i,j].vertPoints, squares[i,j].sides) == True:
+                    squares[i,j].append_TriIntersection(t)
+
+
+
+    def triangle_finder(point):
+        squarePointIsInIfAny = SquareIdxsOfPoint(point)
+        # If point is in a square...
+        if squarePointIsInIfAny != False:
+
+            # If point's square intersects any triangles...
+            possibleTris = squares[squarePointIsInIfAny].triIntersections
+
+            for t in possibleTris:
+                # If point is in THIS triangle, return that triangle's ID.
+                if isPointInTriangle(point,  triangles[t].vertex_positions[0,:], triangles[t].vertex_positions[1,:], triangles[t].vertex_positions[2,:]) == True:
+
+                    return t
+
+        # Otherwise (i.e. the square had no triangle
+        # intersections, or it did but the point wasn't in any of those triangles),
+        # we instead just find the closest square to the point that does have
+        # intersections, and use the triangle it intersects whose centroid is
+        # closest to the point. You could be more careful and really find e.g. the
+        # closest point in the set of triangles to the given point, and use the
+        # corresponding triangle. However the approach here should be fine for
+        # our application. For now we exclude cases where the point fell outside
+        # the square grid entirely, but that should be fixed in future, by imagining
+        # the grid did extend out to where the point is. The expanding-ring-of-squares
+        # search is also done a bit wastefully- in particular when it reaches the edge
+        # of the grid in one direction it could just stop rather than checking new
+        # 'possibleSquare's in that direction for potential adding to nextSquaresToSearch.
+        if squarePointIsInIfAny == False:
+                assert(False), 'Error: For now we need all points you want to map to be within the square grid, so make the grid bigger if need be.'
+        else:
+            possibleTris = []
+            squaresToSearch = [squarePointIsInIfAny]
+            startSquare = squarePointIsInIfAny
+            ringIdxRad = 0 # Search based on a square 'ring' of squares, with the outer squares this many indices from the central start square
+
+            while True:
+
+                for sq in squaresToSearch:
+                    possibleTris.extend(squares[sq].triIntersections)
+
+                if len(possibleTris) != 0:
+                    break
+
+                nextSquaresToSearch = []
+                for sq in squaresToSearch:
+
+                    if sq[0] == startSquare[0] - ringIdxRad:
+                        nextSquaresToSearch.append((sq[0]-1, sq[1]))
+
+                    elif sq[0] == startSquare[0] + ringIdxRad:
+                        nextSquaresToSearch.append((sq[0]+1, sq[1]))
+
+                    elif sq[1] == startSquare[1] - ringIdxRad:
+                        nextSquaresToSearch.append((sq[0], sq[1]-1))
+
+                    elif sq[1] == startSquare[1] + ringIdxRad:
+                        nextSquaresToSearch.append((sq[0], sq[1]+1))
+
+                # Corners of ring add an extra square
+                nextSquaresToSearch.append((startSquare[0] + ringIdxRad + 1, startSquare[1] + ringIdxRad + 1))
+                nextSquaresToSearch.append((startSquare[0] - ringIdxRad - 1, startSquare[1] + ringIdxRad + 1))
+                nextSquaresToSearch.append((startSquare[0] - ringIdxRad - 1, startSquare[1] - ringIdxRad - 1))
+                nextSquaresToSearch.append((startSquare[0] + ringIdxRad + 1, startSquare[1] - ringIdxRad - 1))
+
+                # Eliminate any nextSquaresToSearch that don't exist as they're out of the grid.
+                realNextSquaresToSearch = [nsq for nsq in nextSquaresToSearch if (nsq[0] >= 0 and nsq[0] < squares.shape[0] and nsq[1] >= 0 and nsq[1] < squares.shape[1])]
+
+                squaresToSearch = realNextSquaresToSearch
+
+                ringIdxRad += 1
+
+            # Now we've found at least one possible tri, find the one with the closest
+            # centroid (probably not the best approach but simple and should work
+            # fine for now).
+            centroidDists = np.array([np.linalg.norm(triangles[t].centroid - point) for t in possibleTris])
+            triToUse = possibleTris[np.argmin(centroidDists)]
+
+            return triToUse
+
+        assert(False), 'Error: get_triangle_finder_function has gone wrong somehow because a point has slipped through not been assigned a triangle.'
+        return
+
+    # Now return the mapping function we've generated.
+    return triangle_finder
 
 
 ##############################################################################
