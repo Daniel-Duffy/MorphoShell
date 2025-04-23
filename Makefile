@@ -1,5 +1,5 @@
 
-# Makefile by Daniel Duffy, <dld34@cam.ac.uk>
+# Makefile by Daniel Duffy, <daniellouisduffy@gmail.com>
 # For help, email me or see: 
 # https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types.html#Prerequisite-Types
 
@@ -7,7 +7,7 @@
 # INCDIRS = -I./someDirOfHeaders -I/usr/local/someOtherDirOfHeaders
 # To view the default include paths, I found the following terminal 
 # command on Stackoverflow 11946294
-# g++-9  -E -x c++ - -v < /dev/null
+# g++-14  -E -x c++ - -v < /dev/null
 
 # C Pre-processor flags
 CPPFLAGS = $(INCDIRS)
@@ -28,9 +28,9 @@ CXXFLAGS = -fopenmp -std=c++17 -pedantic -g -march=native -O3\
 # LIBS = -lconfig++ 
 LIBS = -fopenmp
 
-# This specifies the compiler command (executable) to execute. So for a normal sudo apt install gcc-9
+# This specifies the compiler command (executable) to execute. So for a normal sudo apt install gcc-14
 # installation this should be fine:
-CXX = g++-11
+CXX = g++-14
 # But if you had to install gcc-9 manually you *may* need something like this instead:
 # CXX = /opt/gcc-9.3.0/bin/g++
 
