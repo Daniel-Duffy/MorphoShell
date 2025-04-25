@@ -39,16 +39,19 @@ void perturb_node_positions_with_noise(
     Eigen::Matrix<double,Eigen::Dynamic,3> &node_positions, 
     const Stuff_Class &stuff){
 
-    /*Set random number generator . A simple and common one is chosen here:
-    there is little point worrying about obtaining extremely 'good' random
-    numbers for such a simple task, in which the quality of randomness is
-    very unlikely to be important. The seed is chosen to be the current calendar
-    time.*/
-    std::minstd_rand aSimpleEngine(static_cast<long unsigned int>(std::time(nullptr)));
+    // Set random number generator . A simple and common one is chosen here:
+    // there is little point worrying about obtaining extremely 'good' random
+    // numbers for such a simple task, in which the quality of randomness is
+    // very unlikely to be important. The seed is chosen to be a fixed number,
+    // rather than chosen based on time of day or anything like that, partly for 
+    // simplicity, and partly because whether the time needs to be converted to 
+    // an unsigned int or a long unsigned int seemed to be a bit delicate, and 
+    // I think might make cross-platform portability more difficult.
+    std::minstd_rand aSimpleEngine(123456);
 
-    /*Set distribution to be symmetric about zero, and extend to a small
-    distance relative to the mesh spacing. The 0.001 factor is hard coded but
-    could be changed if desired.*/
+    /// Set distribution to be symmetric about zero, and extend to a small
+    // distance relative to the mesh triangle size. The 0.001 factor is hard coded but
+    // could be changed if desired.
     std::uniform_real_distribution<double> distr(-stuff.approx_min_tri_size * 0.001, stuff.approx_min_tri_size * 0.001);
 
     for(int n = 0; n < stuff.num_nodes; ++n){
