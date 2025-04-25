@@ -13,13 +13,14 @@
 CPPFLAGS = $(INCDIRS)
 
 # C++ compiler flags
+# The -march=native flag may need to removed/replaced to compile on Windows.
 CXXFLAGS = -fopenmp -std=c++17 -pedantic -g -march=native -O3\
 -Wall -Wconversion -Wextra\
 -Wformat  -Wshadow -Werror\
 -Wpointer-arith -Wcast-qual -Wwrite-strings\
 
 # If you need to link to particular libraries, not in the default search path. This can be 
-# required if you manually built and installed a newer version of gcc for example, which 
+# required if you built and installed gcc manually for example, which 
 # for me was installed to /opt/gcc-9.3.0
 # -Wl,-rpath=/path/to/mylibdir adds mylibdir to the start of the LINK-TIME library search path.
 # -Lmylibdir adds mylibdir to the start of the RUN-TIME library search path.
@@ -38,7 +39,7 @@ CXX = g++-14
 VPATH = ./source_files
 
 # Name of executable file to make.
-EXEFILE = ../morphoshell
+EXEFILE = morphoshell.exe
 
 
 # Directory to put .o files in to avoid mess.
@@ -47,7 +48,7 @@ OBJDIR := object_files
 # List of object files which will be created (functions, classes etc).
 # Order should not matter on most modern compilers, but good practice 
 # is to have fnA.o before fnB.o if fnA calls fnB, as with libraries where
-# order matterns more often. For discussion see:
+# order matters more often. For discussion see:
 # An Introduction to GCC, Brian Gough.
 OBJECTS := $(addprefix $(OBJDIR)/,\
 main.o \
