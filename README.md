@@ -49,7 +49,7 @@ VIDEO COMING SOON!!
 
 <img src="./images/banner_pic_after_gimp.png" width="20%">
 
-MorphoShell remains an evolving project! If you run into issues with it, I'm always happy to help; my email address is in the MorphoShell handbook.]
+MorphoShell remains an evolving project! If you run into issues with it, I'm always happy to help; my email address is in the MorphoShell handbook.
 
 <!--
 ### Section 1
