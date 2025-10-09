@@ -273,6 +273,7 @@ while( true ){
     if( stuff.using_gradient_descent_dynamics && stepcount > stuff.num_steps_to_use_gradient_descent_dynamics_for_before_switching_to_newtonian_dynamics ){
         log << "Finished doing gradient descent, now switching to Newtonian dynamics." << std::endl;
         stuff.using_gradient_descent_dynamics = false;
+        velocities.fill(0.0); // Reset velocities to zero.
         // The following now need recalculating.
         calc_steps_between_outputs(stuff, log);
         calc_timestep(stuff, log);
