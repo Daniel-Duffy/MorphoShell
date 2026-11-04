@@ -34,7 +34,9 @@ R = 1.0
 
    
 # Define signed distance function used to make mesh.
-dist_func = lambda p: dm.dcircle(p, 0, 0, R)
+#dist_func = lambda p: dm.drectangle0(p, -R, R, -R, R) # Square
+dist_func = lambda p: dm.dcircle(p, 0, 0, R) # Disk
+
 
 # Uniform is probably not bad for now.
 coarsening = lambda p: dm.huniform(p)
@@ -81,6 +83,7 @@ phi = np.arctan2(y, x) + pi # Between 0 and 2pi.
 
 # Angle between in-plane director the x-axis, so in the flat state director = [cos(director_angle), sin(director_angle)].
 director_angles = phi + np.pi/2 # Azimuthal director.
+#director_angles = np.zeros(num_tris) # Horizontal director.
 
 # Lambda is the contraction factor along the in-plane director. Lambda is dialled linearly
 # in time from 1 down to Lambda_final.
@@ -114,11 +117,11 @@ for t in range(0, num_tris):
 # in the settings file), both kappabar_par and kappabar_perp will  be dialled linearly over time, from 0 to their final values defined below.
 for t in range(0, num_tris):    
 
-	kappabar_par_final = 2.5 / R
+    kappabar_par_final = 3.0 / R
 
-	kappabar_perp_final = 0.0 / R
+    kappabar_perp_final = 0.0 / R
 
- 	bbar_info[t,:] = np.array([director_angles[t], kappabar_par_final, kappabar_perp_final])
+    bbar_info[t,:] = np.array([director_angles[t], kappabar_par_final, kappabar_perp_final])
 
 
         
@@ -158,11 +161,3 @@ write_VTK('../files_from_python/cone_ansatz.vtk',
     tri_tags=np.zeros(num_tris), 
     constraint_indicators=np.zeros(num_nodes), 
     node_tags=np.zeros(num_nodes)  )
-
-
-
-
-
-
-
-

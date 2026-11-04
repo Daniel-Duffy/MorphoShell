@@ -3,7 +3,7 @@
 // MorphoShell handbook.
 
 // Controls frequency of generating output files.
-outputs_per_char_long_time  = 400.0;
+outputs_per_char_long_time  = 100.0;
 
 // To instead use the reference thickness 
 // from the input .vtk file (which may be
@@ -11,8 +11,8 @@ outputs_per_char_long_time  = 400.0;
 // decimal number.
 ref_thickness_if_uniform = 0.01;
 
-// A reasonable value to use as a first attempt is 0.6
-timestep_prefactor = 0.7;
+// A reasonable value to use as a first attempt is 0.7
+timestep_prefactor = 3.0;
 
 // This setting is very handy if, for example, you can only make an
 // approximate guess at a solution, and want to start from there and 
@@ -23,11 +23,11 @@ dial_factors_to_hold_at_spacing = 1.0;
 
 // The dial phase time is this prefactor times
 // the characteristic long time.
-dial_phase_time_prefactor = 0.5;
+dial_phase_time_prefactor = 1.0;
 
 
 time_between_equil_checks_prefactor = 0.01;
-damping_prefactor_1 = 12.0;
+damping_prefactor_1 = 10.0;
 damping_prefactor_2 = 35.0;
 
 // See handbook for why you might want to set this >0 in some cases.
@@ -62,6 +62,3 @@ slide_speed_prefactor = 0.0;
 using_initial_glass_slide_z_coords_from_settings_file = false;
 initial_upper_slide_z_coord = 12345.0;
 initial_lower_slide_z_coord = 12345.0;
-
-
-
