@@ -90,7 +90,7 @@ void calc_deformation_forces(
         // this comment and the next double row of slashes.
 
                         
-        double stretch_prefac = (-2*def_thicknesses(t)*def_shear_moduli(t)*(1/(-(abar1*abar1) + abar0*abar2))*(1/sqrt(-(abar1*abar1) + abar0*abar2)))/(-1 + stuff.def_poisson_ratio); 
+        double stretch_prefac = 0.25*(-2*def_thicknesses(t)*def_shear_moduli(t)*(1/(-(abar1*abar1) + abar0*abar2))*(1/sqrt(-(abar1*abar1) + abar0*abar2)))/(-1 + stuff.def_poisson_ratio); 
 
         double bend_prefac = (def_shear_moduli(t)*(1/(-(abar1*abar1) + abar0*abar2))*(def_thicknesses(t)*def_thicknesses(t)*def_thicknesses(t))*(1/sqrt(-(abar1*abar1) + abar0*abar2)))/(6 - 6*stuff.def_poisson_ratio); 
 
