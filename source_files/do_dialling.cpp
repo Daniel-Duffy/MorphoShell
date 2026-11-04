@@ -80,8 +80,8 @@ void do_dialling(
     // abar_comps and bbar_comps, and we just dial 
     // abar and bbar linearly from their initial
     // values to those final values.
-    abar_comps = (1.0-dial_factor) * a_comps_at_zero_dial_factor + dial_factor * abar_info;
-    bbar_comps = (1.0-dial_factor) * b_comps_at_zero_dial_factor + dial_factor * bbar_info;
+    //abar_comps = (1.0-dial_factor) * a_comps_at_zero_dial_factor + dial_factor * abar_info;
+    //bbar_comps = (1.0-dial_factor) * b_comps_at_zero_dial_factor + dial_factor * bbar_info;
     
     
     /////////////////////////////////////////////////
@@ -103,17 +103,18 @@ void do_dialling(
     /////////////////////////////////////////////////
     /*
     // 3)
-    // This case assumes that bbar = 0 and that
-    // abar is of LCE form, and we dial the LCE
-    // lambda linearly in time from 0. So this 
+    // This case assumes that abar is of LCE form for an in-plane director, 
+    // (contraction by lambda along the director and lambda^(-nu_therm) orthogonally), 
+    // and we dial the LCE lambda linearly in time from 1 to its final value. So this 
     // is ideal for LCEs with in-plane director 
     // patterns. Each row of abar_info should hold 
     // director angle, final (target) lambda value, opto-thermal poisson ratio.
+    // Here we also assume bbar = 0.
     bbar_comps.fill(0.0);
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
 
-        double angle = abar_info(t,0);
+        double angle = abar_info(t,0); // Director angle relative to reference-state x-axis.
         double lambda = (1.0-dial_factor) * 1.0 + dial_factor * abar_info(t,1);
         double nu_ot = abar_info(t,2);
 
@@ -123,62 +124,51 @@ void do_dialling(
     }
     */
 
-    /////////////////////////////////////////////////
-    /*
+        /////////////////////////////////////////////////
+    
     // 4)
-    // This case assumes that bbar = 0 and that
-    // abar is of LCE form, and we dial the LCE
-    // lambda linearly in time from one inhomogeneous
-    // lambda field to the next --- there are 11,
-    // corresponding to dial_factor = 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 .
-    // We must therefore have dial_factors_to_hold_at_spacing = 0.1 in settings.
-    bbar_comps.fill(0.0);
+    // This case assumes that abar is of LCE form for an in-plane director, 
+    // (contraction by lambda along the director and lambda^(-nu_therm) orthogonally), 
+    // and we dial the LCE lambda linearly in time from 1 to its final value. So this 
+    // is ideal for LCEs with in-plane director 
+    // patterns. Each row of abar_info should hold 
+    // director angle, final (target) lambda value, opto-thermal poisson ratio.
+    // Here we also assume that there is a preferred curvature (bbar), specifically with
+    // the preferred principal curvature directions lying parallel to the director and orthogonal to it.
+    // This might (for example) correspond to a setup in which the top of the sheet contracts by more 
+    // than the bottom of the sheet (but along the same director on both sides). Thus there are two 
+    // preferred principal curvatures, kappabar_par and kappabar_perp. Here both kappabar_par and 
+    // kappabar_perp are dialled linearly over time, from 0 to their final target values (given in bbar_info).
     #pragma omp parallel for simd
     for(int t = 0; t < stuff.num_tris; ++t){
-                
-        double nu_ot = abar_info(t,11+1-1);
-        double angle = abar_info(t,11+1);
-        int prev_dial_factor_checkpoint_idx = static_cast<int>(std::floor(dial_factor/stuff.dial_factors_to_hold_at_spacing)); // Fine as long as argument of cast is not large, in which case might have a double outside the range of possible ints.
-        double fraction_of_way_through_current_dialling_phase = (dial_factor/ stuff.dial_factors_to_hold_at_spacing-prev_dial_factor_checkpoint_idx);
-        double prev_dial_factor_checkpoint = abar_info(t, prev_dial_factor_checkpoint_idx);
-        double next_dial_factor_checkpoint = abar_info(t, prev_dial_factor_checkpoint_idx+1);
-        double lambda = (1-fraction_of_way_through_current_dialling_phase) * prev_dial_factor_checkpoint + fraction_of_way_through_current_dialling_phase * next_dial_factor_checkpoint;
 
-        //if( t == 0 ){log << "lambda  " << lambda << "  frac  " << fraction_of_way_through_current_dialling_phase << "   idx   " << prev_dial_factor_checkpoint_idx << std::endl;}
-        
+        double angle = abar_info(t,0); // Director angle relative to reference-state x-axis.
+        double lambda = (1.0-dial_factor) * 1.0 + dial_factor * abar_info(t,1);
+        double nu_ot = abar_info(t,2);
 
         abar_comps(t,0) = lambda * lambda * cos(angle) * cos(angle)  +  pow(lambda, -2.0 * nu_ot) * sin(angle) * sin(angle);
         abar_comps(t,1) = (lambda * lambda - pow(lambda, -2.0 * nu_ot)) * cos(angle) * sin(angle);
         abar_comps(t,2) = pow(lambda, -2.0 * nu_ot) * cos(angle) * cos(angle)  +  lambda * lambda * sin(angle) * sin(angle);
+        
+        //double angle = bbar_info(t,0); // Director angle relative to reference-state x-axis.
+        double kappabar_par = dial_factor * bbar_info(t,1);
+        double kappabar_perp = dial_factor * bbar_info(t,2);
+
+        // Eigenvalues of matrix of downstairs components of bbar.
+        double bb1 = lambda * lambda * kappabar_par;
+        double bb2 = pow(lambda, -2.0 * nu_ot) * kappabar_perp;
+
+        bbar_comps(t,0) = bb1 * cos(angle) * cos(angle)  +  bb2 * sin(angle) * sin(angle);
+        bbar_comps(t,1) = (bb1 - bb2) * cos(angle) * sin(angle);
+        bbar_comps(t,2) = bb2 * cos(angle) * cos(angle)  +  bb1 * sin(angle) * sin(angle);
+
+        // Now the programmed shape operator Inverse[abar].bbar has eigenvalues kappabar_par and kappabar_perp,
+        // and corresponding eigenvectors that are the director and a vector orthogonal to the director.
     }
-    */
-
-    /////////////////////////////////////////////////
-    /*
-    // 5)
-    // This case assumes that bbar = 0 and uses isotropic
-    // swelling to encode constant negative
-    // Gauss curvature K, with fabs(K) = 2 * dial_factor.
-    // The r values in abar_info are just values of radial
-    // coordinate in the 2D reference plane.
-    bbar_comps.fill(0.0);
-    #pragma omp parallel for simd
-    for(int t = 0; t < stuff.num_tris; ++t){
-
-        double r = abar_info(t,0);
-
-        double absK = dial_factor * 2.0;
-
-        double Omega = 1.0 / (1.0 - 0.25 * r * r * absK); // Lineal swelling factor
-
-        abar_comps(t,0) = Omega * Omega;
-        abar_comps(t,1) = 0;
-        abar_comps(t,2) = Omega * Omega;
-    }
-    */
+    
 
     ////////////////////////////////////////////////
-    // 6)
+    // 5)
     // Could include an example here of dialling and LCE 
     // except with lambda modified by height of the tri
     // centroid or angle of normal to the z axis.
