@@ -122,7 +122,7 @@ def unique_rows(A, return_index=False, return_inverse=False):
 
     orig_dtype = A.dtype
     ncolumns = A.shape[1]
-    dtype = np.dtype((np.character, orig_dtype.itemsize*ncolumns))
+    dtype = np.dtype((np.void, orig_dtype.itemsize*ncolumns))
     """
     dld34: This faffing around with dtype and so on is because originally 
     np.unique originally had no 'axis' argument, so it just found unique 
@@ -138,8 +138,6 @@ def unique_rows(A, return_index=False, return_inverse=False):
     https://stackoverflow.com/questions/8560440/removing-duplicate-columns-and-rows-from-a-numpy-2d-array/8567929#8567929
     https://stackoverflow.com/questions/47562201/finding-only-unique-coordinates-in-list
     
-    I've no clue why the version here uses the np.character type as opposed to 
-    np.void. I suppose there are various ways to do the same thing.
       
     ANYWAY, this hack has been made entirely redundant in post-1.13 versions 
     of Numpy, where np.unique now has an axis argument, so that calling it 
@@ -149,7 +147,7 @@ def unique_rows(A, return_index=False, return_inverse=False):
     np.unique(edges, return_index=True, return_inverse=True, return_counts=True, axis=0)
     
     """
-    B, I, J = np.unique(A.view(dtype),
+    B, I, J = np.unique(A.view(dtype).ravel(),
                         return_index=True,
                         return_inverse=True)
 
