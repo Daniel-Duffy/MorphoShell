@@ -27,7 +27,7 @@ dial_phase_time_prefactor = 0.5;
 
 
 time_between_equil_checks_prefactor = 0.01;
-damping_prefactor_1 = 15.0;
+damping_prefactor_1 = 12.0;
 damping_prefactor_2 = 35.0;
 
 // See handbook for why you might want to set this >0 in some cases.
