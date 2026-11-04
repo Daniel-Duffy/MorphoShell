@@ -148,7 +148,7 @@ for i in range(0, num_nodes):
     
    
 write_VTK('../files_from_python/cone_ansatz.vtk', 
-    'dial_factor = 1.0', 
+    'dial_factor = 0.0', 
     ansatz_nodes, 
     triangulation, 
     abar_info=np.zeros((num_tris,3)), 
