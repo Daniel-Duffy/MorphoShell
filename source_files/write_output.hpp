@@ -38,7 +38,7 @@ void write_output(
     const Eigen::Matrix<double,Eigen::Dynamic,2> &curvatures,
     const Eigen::Matrix<double,Eigen::Dynamic,2> &energy_densities,
     const Eigen::Matrix<double,Eigen::Dynamic,1> &angle_deficits,
-    const Eigen::Matrix<double,Eigen::Dynamic,8> &stresses,
+    [[maybe_unused]] const Eigen::Matrix<double,Eigen::Dynamic,8> &stresses,
     const Eigen::Matrix<double,Eigen::Dynamic,1> &strains,
     [[maybe_unused]] const std::vector<double> &energies,
     const Stuff_Class &stuff);
