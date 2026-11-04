@@ -17,7 +17,7 @@ CPPFLAGS = $(INCDIRS)
 CXXFLAGS = -fopenmp -std=c++17 -pedantic -g -march=native -O3\
 -Wall -Wconversion -Wextra\
 -Wformat  -Wshadow -Werror\
--Wpointer-arith -Wcast-qual -Wwrite-strings\
+-Wpointer-arith -Wcast-qual -Wwrite-strings -fno-math-errno\
 
 # If you need to link to particular libraries, not in the default search path. This can be 
 # required if you built and installed gcc manually for example, which 
