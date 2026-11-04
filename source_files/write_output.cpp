@@ -133,6 +133,7 @@ void write_output(
         out_file << strains(t) << "\n";
     }
 
+    /*
     out_file << "FIELD cauchy_stress_info 4" << "\n";
 
     out_file << "dimless_cauchy_stress_eigval_1 1 " << stuff.num_tris << " double" << "\n";
@@ -151,7 +152,7 @@ void write_output(
     for(int t = 0; t < stuff.num_tris; ++t){
         out_file << stresses(t,5) << " " << stresses(t,6) << " " << stresses(t,7) << "\n";
     }
-
+    */
 
 
 
