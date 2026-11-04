@@ -9,7 +9,7 @@ patterns, plot director patterns, write a .vtk file etc.
 """
 
 import numpy as np
-from math import sin, cos, ceil, floor, copysign
+from math import sin, cos, ceil, floor, copysign, sqrt
 import matplotlib.pyplot as plt
 
 from scipy.sparse import coo_matrix, csr_matrix
@@ -1414,7 +1414,7 @@ def get_triangle_finder_function(nodes, triangulation):
     # (This function is almost a copy-paste of get_piecewise_linear_interpolation_function_for_tri_mesh.)
     # I expect this function could be made a lot faster, possibly by removing some
     # of the class structure. So a standard usage might look like
-    # triangle_finder = create_triangle_finder_function(nodes, triangulation)
+    # triangle_finder = get_triangle_finder_function(nodes, triangulation)
     # for point in list_of_xy_points_that_are_not_nodes_of_the_mesh:
     #   triangle_id_corresponding_to_this_point = triangle_finder(point)
 
@@ -1569,7 +1569,7 @@ def get_triangle_finder_function(nodes, triangulation):
             squares[i,j] = Square(np.array([[xx[i,j], yy[i,j]], [xx[i+1,j], yy[i+1,j]], [xx[i+1,j+1], yy[i+1,j+1]], [xx[i,j+1], yy[i,j+1]]]))
             squares[i,j].set_Idxs([i,j])
     numSquares = squares.size
-    print('Number of squares in grid for get_piecewise_linear_interpolation_function_for_tri_mesh is ' +str(numSquares))
+    print('Number of squares in grid for get_triangle_finder_function is ' +str(numSquares))
 
     def SquareIdxsOfPoint(point):
         # Returns the i,j indexes in the squares array corresponding to the square
@@ -1858,3 +1858,278 @@ def multi_array_elementwise_and_or_or(and_or_or_string, array_tuple):
             output = np.logical_or(output, array_tuple[a])    
 
     return output
+
+
+
+##############################################################################
+##############################################################################
+
+def refine_mesh(triangulation, nodes, sqrt_of_num_subtris_per_tri):
+    """ 
+    Read in a mesh (a triangulation and 3D node positions), and construct a new, 
+    finer mesh via my 'submeshing' construction based on Pascal's triangle. 
+    This construction exactly maintains aspect ratio, splitting each triangle 
+    into 4, or 9, or 16, ... subtriangles, as you choose. 
+    The new points are generated in the planes of the original triangles.
+    The original triangles will be called 'macrotriangles'. The new triangles
+    and nodes will at times be called 'subtriangles' and 'subnodes'.
+    
+    The submesh is based on subdividing an equilateral
+    triangle into smaller equilateral triangles. A canonical equilateral
+    triangle is used to do this, which has edges of length 1, and vertices at
+    0,0), (-0.5, -sqrt(3)/2.0), (0.5, -sqrt(3)/2.0).
+    """
+
+    # Some simple checks on a few things. These are not exhaustive.
+    assert(
+        triangulation.shape[1] == 3
+    and triangulation.ndim == 2
+    and np.amin(triangulation)==0), "Error: Something is wrong with one of the input arguments. Aborting."
+    
+    num_macrotris = triangulation.shape[0]
+    
+    # Determine and store the ids of the triangles incident on each node.
+    node_incident_tri_ids = [[] for n in nodes[:,0]]
+    for t in range(0, num_macrotris):
+        # Add this triangle's id to each of its vertices in turn.
+        for v in triangulation[t,:]:
+            node_incident_tri_ids[v].append(t)
+    
+    # Now determine, for each tri, which other tris it shares vertices with.
+    # For each triangle (tri), ...
+    vertex_sharing_tri_ids = [[] for t in triangulation[:,0]]
+    for t in range(0, num_macrotris):
+        # ... we first make a list of all other
+        # triangles that are incident on any of tri's vertices.
+        for v in triangulation[t,:]:
+            for inc_tri in node_incident_tri_ids[v]:
+                if( inc_tri != t ):
+                    vertex_sharing_tri_ids[t].append(inc_tri)
+        # Now remove any duplicate entries in the list.
+        vertex_sharing_tri_ids[t] = list(set(vertex_sharing_tri_ids[t]))
+    
+    # Calculate smallest mesh edge length
+    edge_node_IDs, tri_edge_IDs, edge_vectors = find_Edges(triangulation, nodes, just_boundary=False)
+    smallest_macroedge_length = np.sqrt((edge_vectors**2).sum(1)).min()
+
+    # Calculate number of sub-triangles per original triangle, which must be a perfect square.
+    num_subtris_per_tri = sqrt_of_num_subtris_per_tri * sqrt_of_num_subtris_per_tri
+    
+    # Number of sub-nodes in a macrotriangle is given by the Nth triangular number, not 
+    # accounting for sharing between macrotriangles.
+    # Using stuff.num_subtris_per_tri = (N-1)^2. N is also the number of rows of sub-nodes.
+    N = sqrt_of_num_subtris_per_tri + 1
+    
+    # Calculate the corresponding triangular number, which is the number of
+    # sub-nodes. Calculate also the edge length of the sub-triangles.
+    num_subnodes_per_tri = (N * (N+1)) // 2 # Note the use of "integer" floor division.
+    subtri_canonical_edge_length = 1.0 / (N-1)
+    
+    # Calculate the number of subnodes in the interior of each tri, i.e.
+    # not on edges or vertices, using the fact that since N is the number of
+    # rows of subnodes,  there are N-2 subnodes along each edge excluding those at vertices.
+    num_interior_subnodes_per_tri = num_subnodes_per_tri - 3 - 3*(N-2);
+    
+    # Total number of sub-triangles in the whole mesh.
+    num_subtris = num_macrotris * num_subtris_per_tri;
+    
+    # Now define the subnodes' canonical positions in the canonical equilateral triangle.
+    canonical_subnodes = np.zeros((num_subnodes_per_tri, 2))
+    canonical_subnode_label = 0
+    for node_row in range(0, N):
+        for idx_across in range(0, node_row + 1):
+            canonical_subnodes[canonical_subnode_label, 0] = -node_row * subtri_canonical_edge_length / 2.0 + idx_across * subtri_canonical_edge_length
+            canonical_subnodes[canonical_subnode_label, 1] = (-sqrt(3)/2.0) * node_row / (N-1)
+            canonical_subnode_label += 1
+        
+        
+    subtriangulation = np.zeros((num_subtris, 3), dtype=int)
+    subnode_positions = np.zeros((num_macrotris * num_subnodes_per_tri, 3)) # Some of the sub-node positions will be duplicated in this vector; we'll fix that later, by accounting for sharing between triangles.
+    subnodes_macro_tri_ids = np.zeros(subnode_positions.shape[0], dtype=int) #  To record which macro tri each sub-node is associated with.
+    macrotris_contained_subnode_ids = [] # For each macrotri, a list of the subnodes it contains. So eventually this data structure will be a list of lists.
+    macrotris_contained_subtri_ids = [] # For each macrotri, a list of the subtris it contains. So eventually this data structure will be a list of lists.
+
+    subtri_idx = 0
+    for macro_tri in range(0, num_macrotris):
+        
+        macrotris_contained_subnode_ids.append([])
+        macrotris_contained_subtri_ids.append([])
+
+        # Map canonical sub-node positions onto those of the current macrotriangle,
+        # using the unique affine mapping that relates this triangle to the
+        # canonical one.
+        canonical_macro_sides = np.array([[ -0.5,         0.5],
+                                          [-sqrt(3)/2.0, -sqrt(3)/2.0]]);
+
+        macro_vert_0 = nodes[triangulation[macro_tri,0], :]
+        macro_vert_1 = nodes[triangulation[macro_tri,1], :]
+        macro_vert_2 = nodes[triangulation[macro_tri,2], :]
+        
+        macro_sides = np.stack((macro_vert_1-macro_vert_0, macro_vert_2-macro_vert_0), axis=-1)
+
+        # Deformation gradient F that linearly maps the canonical macrotriangle to the current macrotriangle
+        canonical_to_actual_F = macro_sides @ np.linalg.inv(canonical_macro_sides)
+
+        # The defgrad just maps vectors to vectors, while we need to linearly map points to points.
+        # Therefore we furthermore require that the first vertex of the canonical tri is mapped to 
+        # the first vertex of the ref tri.
+        canonical_vert_0 = np.array([0,0])
+        for n in range(0, num_subnodes_per_tri):
+
+            this_subnode_id = macro_tri * num_subnodes_per_tri + n
+
+            subnode_positions[this_subnode_id,:] = macro_vert_0 + canonical_to_actual_F @ (canonical_subnodes[n,:] - canonical_vert_0)
+
+            # Record also which macro_tri this sub-node is in.
+            subnodes_macro_tri_ids[this_subnode_id] = macro_tri
+
+            # Let this macro tri know that it contains this subnode.
+            macrotris_contained_subnode_ids[macro_tri].append(this_subnode_id)
+
+        # The row of sub-triangles with index subtri_row contains 2*subtri_row + 1
+        # triangles, of which subtri_row + 1 point up, and subtri_row point down.
+        for subtri_row in range (0, N-1):
+            for idx_across in range(0, 2 * subtri_row + 1):
+
+                if( idx_across % 2 == 0 ):
+                    # Pointing up.
+                    subtriangulation[subtri_idx,:] = np.array([
+                    macro_tri * num_subnodes_per_tri + (subtri_row * (subtri_row+1)) / 2 + idx_across/2,
+                    macro_tri * num_subnodes_per_tri + ((subtri_row+1) * (subtri_row+2)) / 2 + idx_across/2,
+                    macro_tri * num_subnodes_per_tri + ((subtri_row+1) * (subtri_row+2)) / 2 + idx_across/2 + 1
+                    ])
+                else:
+                    # Pointing down.
+                    subtriangulation[subtri_idx,:] = np.array([
+                    macro_tri * num_subnodes_per_tri + ((subtri_row+1) * (subtri_row+2)) / 2 + (idx_across+1)/2,
+                    macro_tri * num_subnodes_per_tri + (subtri_row * (subtri_row+1)) / 2 + (idx_across-1)/2 + 1,
+                    macro_tri * num_subnodes_per_tri + (subtri_row * (subtri_row+1)) / 2 + (idx_across-1)/2
+                    ])
+                
+
+                # Tell this macro tri that it contains this subtri.
+                macrotris_contained_subtri_ids[macro_tri].append(subtri_idx)
+
+                # We're done with this subtri so advance the subtri_idx to move
+                # to move on to the next.
+                subtri_idx += 1
+                
+    assert(len(macrotris_contained_subtri_ids) == num_macrotris)
+    for t in range(0, num_macrotris):
+        assert(len(macrotris_contained_subtri_ids[t]) == num_subtris_per_tri)
+        
+    #np.savetxt('/home/dlduffy/c++_stuff/sphere_wrapping/automated_loop_time/meshes/'+'test.txt', subnode_positions, fmt='%.15e', delimiter=',', header='', comments='')
+
+    
+    # Now we need to fix things up, since subnodes on the edges of the macro
+    # triangles have been doubled up, so we need to delete one of each doubled
+    # pair, as well as creating a corresponding new repaired triangulation.
+    # At the vertices of the macrotriangles the fix works similarly, but there
+    # we've got (usually) >2 copies of what's really the same node.
+
+    # The way I did this in an older version of the code did not rely on 
+    # testing whether points are spatially close to each other, but this 
+    # way is simpler, and I don't see any problem with it as long as 
+    # num_subtris_per_tri isn't stupidly large.
+
+    # For each of the pre-fixing subnodes, this vector stores the index into
+    # fixed_subnode_positions that that subnode will have, if that subnode
+    # was retained rather than being deleted. The values for non-retained subnodes
+    # are meaningless.
+    fixed_indices_of_retained_subnodes = -9999 * np.ones(subnode_positions.shape[0], dtype=int)
+    fixed_subnode_positions = []
+    fixed_subnodes_macro_tri_ids = []
+    
+    # We loop over subnodes ...
+    for sn in range(0, subnode_positions.shape[0]):
+
+        # ... and if we find this subnode is a duplicate of an existing
+        # subnode, we'll delete this subnode, by (1) removing it from its 
+        # macro tri's list of contained subnodes, and (2) replacing its 
+        # appearances in subtriangulation appropriately, and (3) not 
+        # adding it to our running fixed/culled collection of subnodes 
+        # that we'll build up. Note that this means we are being a 
+        # bit cheeky with the macrotriangles' contained_subnode_ids
+        # lists, because really subnodes are shared between macrotriangles
+        # on their edges and vertices, but in the case of such a shared 
+        # subnode we effectively just pick one of the sharing macro tris 
+        # arbitrarily and say the subnode belongs to that macro tri. This
+        # cheekiness does make some things easier, which is why we do it.
+        this_subnode_is_a_duplicate_of_an_existing_subnode = False
+
+        # Loop over all macro tris that could possibly contain subnodes that 
+        # are duplicates of the current one.
+        macro_tris_to_search = vertex_sharing_tri_ids[subnodes_macro_tri_ids[sn]].copy()
+        other_subnodes_to_check = []
+        for macro_tri_id in macro_tris_to_search:
+            for other_subnode_id in macrotris_contained_subnode_ids[macro_tri_id]:
+                other_subnodes_to_check.append(other_subnode_id)
+
+        # Check for duplication based on spatial proximity.
+        existing_subnode_id = -999
+        for other_subnode_id in other_subnodes_to_check:
+            
+            distance = np.linalg.norm(subnode_positions[other_subnode_id,:] - subnode_positions[sn,:])
+
+            if( distance < 0.001 * smallest_macroedge_length ):
+                this_subnode_is_a_duplicate_of_an_existing_subnode = True
+                existing_subnode_id = other_subnode_id
+
+        if( this_subnode_is_a_duplicate_of_an_existing_subnode ):
+                        
+            # Delete this subnode from its macro tri's list of contained subnodes.
+            macrotris_contained_subnode_ids[subnodes_macro_tri_ids[sn]].remove(sn)
+
+            # Replace this subnode's appearances in subtriangulation.
+            rows_in_subtriangulation_that_could_conceivably_contain_this_subnode = macrotris_contained_subtri_ids[subnodes_macro_tri_ids[sn]].copy()
+            for macro_tri_id in macro_tris_to_search:
+                rows_in_subtriangulation_that_could_conceivably_contain_this_subnode += macrotris_contained_subtri_ids[macro_tri_id].copy()
+            #for subtri_id in macrotris_contained_subtri_ids[subnodes_macro_tri_ids[sn]]: # ORIGINAL, INCORRECT I THINK!
+            for subtri_id in rows_in_subtriangulation_that_could_conceivably_contain_this_subnode:
+                
+                replace_bool = (subtriangulation[subtri_id,:] == sn)
+                subtriangulation[subtri_id, replace_bool] = existing_subnode_id
+
+        else: # Add this subnode to the running fixed collections.
+            fixed_subnode_positions.append(subnode_positions[sn,:]);
+            fixed_subnodes_macro_tri_ids.append(subnodes_macro_tri_ids[sn]);
+            fixed_indices_of_retained_subnodes[sn]= len(fixed_subnode_positions)-1
+
+
+    # We know exactly how many subnodes there should be in total after the fixing, so let's
+    # check that number has been achieved correctly. As mentioned earlier, N-2 is the number
+    # of subnodes on each edge excluding vertices of macrotriangles.
+    expected_num_subnodes = nodes.shape[0] + edge_vectors.shape[0] * (N-2) + triangulation.shape[0] * num_interior_subnodes_per_tri
+    test_num_subnodes = 0
+    for tri in range(0, triangulation.shape[0]):
+        test_num_subnodes += len(macrotris_contained_subnode_ids[tri])
+    assert( test_num_subnodes == expected_num_subnodes ), "Error: Fixing subnode duplicates has failed; there must be a bug!  :(  "
+    
+    fixed_subnode_positions = np.vstack(fixed_subnode_positions)
+    num_subnodes = fixed_subnode_positions.shape[0]
+    
+    #np.savetxt('/home/dlduffy/c++_stuff/sphere_wrapping/automated_loop_time/meshes/'+'test.txt', fixed_subnode_positions, fmt='%.15e', delimiter=',', header='', comments='')
+
+    # We now need to fix the fact that, although we've removed 
+    # any subnode ids that corresponded to duplicates
+    # (removed from subtriangulation and the macro tris' 
+    # lists of subnodes), the remaining ids still all correspond 
+    # to indices into the *non*-fixed subnode_ref_positions vector. 
+    # So we need to now relabel all the subnodes to give them 
+    # proper ids starting from 0 and ending at num_subnodes.
+    for tri in range(0, num_macrotris):
+        macrotris_contained_subnode_ids[tri] = []
+    for sn in range(0, num_subnodes):
+        macrotris_contained_subnode_ids[fixed_subnodes_macro_tri_ids[sn]].append(sn)
+    # Now store our finalised subtriangulation, using the new subnode ids.
+    subtriangulation_new = -99*np.ones_like(subtriangulation)
+    for st in range(0, num_subtris):
+        for v in range(0, 3):
+            subtriangulation_new[st,v] = fixed_indices_of_retained_subnodes[subtriangulation[st,v]]
+            assert( subtriangulation_new[st,v] >= 0 ), "Something has gone horribly wrong in fixed_indices_of_retained_subnodes; there must be a bug!  :(  "
+            
+    # Finally, we do a nice relabelling to keep spatially nearby objects having
+    # similar labels, to a large extent at least.
+    optimize_mesh_tri_and_node_labels(subtriangulation_new, fixed_subnode_positions)
+
+    return subtriangulation_new, fixed_subnode_positions
