@@ -3,7 +3,7 @@
 """
 
 
-@author: dld34
+@author: Daniel Duffy, dld34@cam.ac.uk
 
 
 """
@@ -123,7 +123,8 @@ for t in range(0, num_tris):
 
     bbar_info[t,:] = np.array([director_angles[t], kappabar_par_final, kappabar_perp_final])
 
-
+# If you want to see/modify how the above abar_info and bbar_info are actually used in the dialling procedure in MorphoShell,
+# open source_files/do_dialling.cpp in a text editor and look at the parts which are not commented out with // or /* */
         
 write_VTK('../files_from_python/cone.vtk', 
     ' ', 
@@ -146,7 +147,7 @@ for i in range(0, num_nodes):
     # Slightly curved state.
     ansatz_nodes[i,0] = nodes[i,0]
     ansatz_nodes[i,1] = nodes[i,1]
-    ansatz_nodes[i,2] = -(0.001/R) * (nodes[i,0]**2 + nodes[i,1]**2)
+    ansatz_nodes[i,2] = -(0.002/R) * (nodes[i,0]**2 + nodes[i,1]**2)
     
     
    
